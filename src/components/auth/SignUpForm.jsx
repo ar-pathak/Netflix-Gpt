@@ -1,10 +1,18 @@
 import React, { useContext } from "react";
 import UserContext from "../../context/UserContext";
+import { useToast } from "../../context/ToastContext";
 
 const SignUpForm = () => {
     const { userStatus, setUserStatus } = useContext(UserContext);
+    const { showToast } = useToast();
+    
     const toggleUserStatus = () => {
         setUserStatus(!userStatus);
+    };
+
+    const handleSignUp = (e) => {
+        e.preventDefault();
+        showToast("This is a replica of the Netflix login page. It is for practice only—no actual sign-up occurs here.", "info");
     };
 
     return (
@@ -21,7 +29,7 @@ const SignUpForm = () => {
             <div className="bg-black/80 text-white w-[450px] p-8 rounded-lg shadow-lg relative z-10">
                 <h1 className="text-[32px] font-bold mb-6">Sign Up</h1>
 
-                <form className="flex flex-col space-y-4">
+                <form className="flex flex-col space-y-4" onSubmit={handleSignUp}>
                     <input
                         type="text"
                         className="border border-gray-400 bg-gray-900 text-white px-4 py-3 rounded-sm w-full focus:outline-none focus:ring-2 focus:ring-red-500"

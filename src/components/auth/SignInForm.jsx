@@ -1,10 +1,12 @@
 import React, { useContext, useState } from "react";
 import UserContext from "../../context/UserContext";
 import { NavLink } from "react-router";
+import { useToast } from "../../context/ToastContext";
 
 const SignInForm = () => {
     const { userStatus, setUserStatus } = useContext(UserContext);
     const [signInCode, setSignInCode] = useState(false);
+    const { showToast } = useToast();
 
     const toggleUserStatus = () => {
         setUserStatus(!userStatus);
@@ -12,6 +14,11 @@ const SignInForm = () => {
 
     const useSignInCodeBtn = () => {
         setSignInCode(!signInCode);
+    };
+
+    const handleSignIn = (e) => {
+        e.preventDefault();
+        showToast("This is a replica of the Netflix login page. It is for practice only—no actual login occurs here.", "info");
     };
 
     return (
@@ -30,7 +37,7 @@ const SignInForm = () => {
                     Sign In
                 </h1>
 
-                <form className="flex flex-col space-y-4">
+                <form className="flex flex-col space-y-4" onSubmit={handleSignIn}>
                     <input
                         type="text"
                         className="border border-gray-400 bg-gray-900 text-white px-4 py-3 rounded-sm w-full focus:outline-none focus:ring-2 focus:ring-red-500"
