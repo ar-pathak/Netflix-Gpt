@@ -1,8 +1,8 @@
 // Email validation regex
 const EMAIL_REGEX = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 
-// Password validation regex (min 8 chars, at least 1 uppercase, 1 lowercase, 1 number)
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+// Password validation regex (min 8 chars, at least 1 uppercase, 1 lowercase, 1 number, 1 special char)
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[a-zA-Z\d!@#$%^&*(),.?":{}|<>]{8,}$/;
 
 export const validateEmail = (email) => {
   if (!email) {
@@ -19,7 +19,7 @@ export const validatePassword = (password) => {
     return 'Password is required';
   }
   if (!PASSWORD_REGEX.test(password)) {
-    return 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number';
+    return 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character';
   }
   return '';
 };

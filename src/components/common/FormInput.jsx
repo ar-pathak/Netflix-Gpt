@@ -13,6 +13,22 @@ const FormInput = ({
   const showError = error && touched;
   const isPasswordError = type === 'password' && error?.includes('Password must be');
   
+  // Map input types to appropriate autocomplete values
+  const getAutocompleteValue = () => {
+    switch (type) {
+      case 'email':
+        return 'email';
+      case 'password':
+        return name === 'confirmPassword' ? 'new-password' : 'current-password';
+      case 'text':
+        if (name === 'username') return 'username';
+        if (name === 'fullName') return 'name';
+        return 'off';
+      default:
+        return 'off';
+    }
+  };
+
   const checkPasswordCriteria = (password) => {
     if (!password) return {
       length: false,
@@ -102,6 +118,7 @@ const FormInput = ({
           }}
           onBlur={onBlur}
           placeholder={placeholder}
+          autoComplete={getAutocompleteValue()}
           className={`
             border ${showError ? 'border-red-500' : 'border-gray-400'}
             bg-gray-900 text-white px-4 py-3 rounded-sm w-full
