@@ -1,15 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { useToast } from "../../context/ToastContext";
 import FormInput from "../common/FormInput";
 import useForm from "../../hooks/useForm";
 import { validateSignUpForm } from "../../utils/validation";
 import { auth } from "../../utils/firebase";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence, browserSessionPersistence } from "firebase/auth";
 import { useNavigate } from "react-router";
 
 const SignUpForm = ({ onToggleForm }) => {
     const { showToast } = useToast();
     const navigate = useNavigate();
+    const [rememberMe, setRememberMe] = useState(false);
     
     const initialValues = {
         name: '',
@@ -28,6 +29,12 @@ const SignUpForm = ({ onToggleForm }) => {
 
     const onSubmit = async (formValues) => {
         try {
+            // Set persistence based on remember me checkbox
+            await setPersistence(
+                auth,
+                rememberMe ? browserLocalPersistence : browserSessionPersistence
+            );
+
             // Create user with email and password
             const userCredential = await createUserWithEmailAndPassword(
                 auth,
@@ -120,7 +127,12 @@ const SignUpForm = ({ onToggleForm }) => {
                 {/* Remember Me Section */}
                 <div className="flex items-center mt-4">
                     <label className="flex items-center cursor-pointer">
-                        <input className="h-5 w-5 mr-2" type="checkbox" />
+                        <input 
+                            className="h-5 w-5 mr-2" 
+                            type="checkbox" 
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                        />
                         <span>Remember me</span>
                     </label>
                 </div>
