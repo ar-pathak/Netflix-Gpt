@@ -1,17 +1,34 @@
 import React, { useContext } from "react";
 import UserContext from "../../context/UserContext";
 import { useToast } from "../../context/ToastContext";
+import FormInput from "../common/FormInput";
+import useForm from "../../hooks/useForm";
+import { validateSignUpForm } from "../../utils/validation";
 
 const SignUpForm = () => {
     const { userStatus, setUserStatus } = useContext(UserContext);
     const { showToast } = useToast();
     
+    const initialValues = {
+        name: '',
+        email: '',
+        password: ''
+    };
+
+    const {
+        values,
+        errors,
+        touched,
+        handleChange,
+        handleBlur,
+        handleSubmit
+    } = useForm(initialValues, validateSignUpForm);
+
     const toggleUserStatus = () => {
         setUserStatus(!userStatus);
     };
 
-    const handleSignUp = (e) => {
-        e.preventDefault();
+    const onSubmit = (formValues) => {
         showToast("This is a replica of the Netflix login page. It is for practice only—no actual sign-up occurs here.", "info");
     };
 
@@ -29,23 +46,41 @@ const SignUpForm = () => {
             <div className="bg-black/80 text-white w-[450px] p-8 rounded-lg shadow-lg relative z-10">
                 <h1 className="text-[32px] font-bold mb-6">Sign Up</h1>
 
-                <form className="flex flex-col space-y-4" onSubmit={handleSignUp}>
-                    <input
+                <form className="flex flex-col space-y-4" onSubmit={handleSubmit(onSubmit)}>
+                    <FormInput
                         type="text"
-                        className="border border-gray-400 bg-gray-900 text-white px-4 py-3 rounded-sm w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                        name="name"
+                        value={values.name}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
                         placeholder="Enter your name"
+                        error={errors.name}
+                        touched={touched.name}
                     />
-                    <input
+                    <FormInput
                         type="text"
-                        className="border border-gray-400 bg-gray-900 text-white px-4 py-3 rounded-sm w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                        name="email"
+                        value={values.email}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
                         placeholder="Email or mobile number"
+                        error={errors.email}
+                        touched={touched.email}
                     />
-                    <input
+                    <FormInput
                         type="password"
-                        className="border border-gray-400 bg-gray-900 text-white px-4 py-3 rounded-sm w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                        name="password"
+                        value={values.password}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
                         placeholder="Password"
+                        error={errors.password}
+                        touched={touched.password}
                     />
-                    <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-sm w-full transition">
+                    <button 
+                        type="submit"
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-sm w-full transition"
+                    >
                         Sign Up
                     </button>
                 </form>

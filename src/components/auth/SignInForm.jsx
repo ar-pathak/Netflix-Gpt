@@ -2,11 +2,29 @@ import React, { useContext, useState } from "react";
 import UserContext from "../../context/UserContext";
 import { NavLink } from "react-router";
 import { useToast } from "../../context/ToastContext";
+import FormInput from "../common/FormInput";
+import useForm from "../../hooks/useForm";
+import { validateSignInForm } from "../../utils/validation";
 
 const SignInForm = () => {
     const { userStatus, setUserStatus } = useContext(UserContext);
     const [signInCode, setSignInCode] = useState(false);
     const { showToast } = useToast();
+
+    const initialValues = {
+        email: '',
+        password: ''
+    };
+
+    const {
+        values,
+        errors,
+        touched,
+        handleChange,
+        handleBlur,
+        handleSubmit,
+        resetForm
+    } = useForm(initialValues, validateSignInForm);
 
     const toggleUserStatus = () => {
         setUserStatus(!userStatus);
@@ -14,10 +32,10 @@ const SignInForm = () => {
 
     const useSignInCodeBtn = () => {
         setSignInCode(!signInCode);
+        resetForm();
     };
 
-    const handleSignIn = (e) => {
-        e.preventDefault();
+    const onSubmit = (formValues) => {
         showToast("This is a replica of the Netflix login page. It is for practice only—no actual login occurs here.", "info");
     };
 
@@ -37,24 +55,39 @@ const SignInForm = () => {
                     Sign In
                 </h1>
 
-                <form className="flex flex-col space-y-4" onSubmit={handleSignIn}>
-                    <input
+                <form className="flex flex-col space-y-4" onSubmit={handleSubmit(onSubmit)}>
+                    <FormInput
                         type="text"
-                        className="border border-gray-400 bg-gray-900 text-white px-4 py-3 rounded-sm w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                        name="email"
+                        value={values.email}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
                         placeholder="Email or mobile number"
+                        error={errors.email}
+                        touched={touched.email}
                     />
+
                     {signInCode ? (
                         <p className="text-center text-sm text-gray-400">
                             Message and data rates may apply.
                         </p>
                     ) : (
-                        <input
+                        <FormInput
                             type="password"
-                            className="border border-gray-400 bg-gray-900 text-white px-4 py-3 rounded-sm w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                            name="password"
+                            value={values.password}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
                             placeholder="Password"
+                            error={errors.password}
+                            touched={touched.password}
                         />
                     )}
-                    <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-sm w-full transition">
+
+                    <button
+                        type="submit"
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-sm w-full transition"
+                    >
                         Sign In
                     </button>
                 </form>
