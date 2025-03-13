@@ -1,13 +1,15 @@
-import React, { useContext } from "react";
-import UserContext from "../../context/UserContext";
+import React from "react";
 import { useToast } from "../../context/ToastContext";
 import FormInput from "../common/FormInput";
 import useForm from "../../hooks/useForm";
 import { validateSignUpForm } from "../../utils/validation";
+import { auth } from "../../utils/firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { useNavigate } from "react-router";
 
-const SignUpForm = () => {
-    const { userStatus, setUserStatus } = useContext(UserContext);
+const SignUpForm = ({ onToggleForm }) => {
     const { showToast } = useToast();
+    const navigate = useNavigate();
     
     const initialValues = {
         name: '',
@@ -24,12 +26,42 @@ const SignUpForm = () => {
         handleSubmit
     } = useForm(initialValues, validateSignUpForm);
 
-    const toggleUserStatus = () => {
-        setUserStatus(!userStatus);
-    };
+    const onSubmit = async (formValues) => {
+        try {
+            // Create user with email and password
+            const userCredential = await createUserWithEmailAndPassword(
+                auth,
+                formValues.email,
+                formValues.password
+            );
 
-    const onSubmit = (formValues) => {
-        showToast("This is a replica of the Netflix login page. It is for practice only—no actual sign-up occurs here.", "info");
+            // Update user profile with name
+            await updateProfile(userCredential.user, {
+                displayName: formValues.name
+            });
+
+            showToast("Account created successfully!", "success");
+            navigate("/browse");
+        } catch (error) {
+            console.error("Sign up error:", error);
+            let errorMessage = "An error occurred during sign up.";
+            
+            switch (error.code) {
+                case 'auth/email-already-in-use':
+                    errorMessage = "This email is already registered.";
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = "Invalid email address.";
+                    break;
+                case 'auth/weak-password':
+                    errorMessage = "Password should be at least 6 characters.";
+                    break;
+                default:
+                    errorMessage = error.message;
+            }
+            
+            showToast(errorMessage, "error");
+        }
     };
 
     return (
@@ -58,7 +90,7 @@ const SignUpForm = () => {
                         touched={touched.name}
                     />
                     <FormInput
-                        type="text"
+                        type="email"
                         name="email"
                         value={values.email}
                         onChange={handleChange}
@@ -98,7 +130,7 @@ const SignUpForm = () => {
                     Already have an account?{" "}
                     <span
                         className="font-bold hover:underline cursor-pointer"
-                        onClick={toggleUserStatus}
+                        onClick={() => onToggleForm(true)}
                     >
                         Sign in now.
                     </span>
