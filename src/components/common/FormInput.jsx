@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const FormInput = ({
   type = 'text',
+  label,
   name,
   value,
   placeholder,
   onChange,
   onBlur,
   error,
-  touched
+  touched,
+  disabled
 }) => {
+  const [isFocused, setIsFocused] = useState(false);
   const showError = error && touched;
   const isPasswordError = type === 'password' && error?.includes('Password must be');
   
@@ -67,9 +70,9 @@ const FormInput = ({
     });
     
     return (
-      <div className="absolute left-0 top-full mt-2 bg-gray-900 p-3 rounded-md border border-gray-700 shadow-lg w-full z-50">
+      <div className="absolute right-0 top-0 -translate-y-2 translate-x-full ml-4 bg-gray-900 p-3 rounded-md border border-gray-700 shadow-lg w-72">
         <div className="relative">
-          <div className="absolute -top-2 left-4 w-3 h-3 bg-gray-900 border-t border-l border-gray-700 transform -rotate-45" />
+          <div className="absolute top-4 -left-2 w-3 h-3 bg-gray-900 border-t border-l border-gray-700 transform rotate-45" />
         </div>
         <p className={`text-sm font-medium mb-2 ${allCriteriaMet ? 'text-green-500' : 'text-red-500'}`}>
           {allCriteriaMet ? 'Password meets all requirements!' : 'Password requirements:'}
@@ -102,21 +105,27 @@ const FormInput = ({
   
   return (
     <div className="mb-7">
+      {label && (
+        <label 
+          htmlFor={name}
+          className="block text-sm font-medium text-gray-300 mb-2"
+        >
+          {label}
+        </label>
+      )}
       <div className="relative">
         <input
+          id={name}
           type={type}
           name={name}
           value={value}
-          onChange={(e) => {
-            if (type === 'password') {
-              console.debug('Password Input Changed:', {
-                length: e.target.value.length,
-                hasValue: !!e.target.value
-              });
-            }
-            onChange(e);
+          onChange={onChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={(e) => {
+            setIsFocused(false);
+            onBlur?.(e);
           }}
-          onBlur={onBlur}
+          disabled={disabled}
           placeholder={placeholder}
           autoComplete={getAutocompleteValue()}
           className={`
@@ -125,6 +134,7 @@ const FormInput = ({
             focus:outline-none focus:ring-2 
             ${showError ? 'focus:ring-red-500' : 'focus:ring-white/20'}
             hover:border-gray-300 transition-all duration-200
+            ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           `}
           aria-invalid={showError}
           aria-describedby={error ? `${name}-error` : undefined}
@@ -138,7 +148,9 @@ const FormInput = ({
             {error}
           </div>
         )}
-        {isPasswordError && renderPasswordRequirements()}
+        {type === 'password' && value && isFocused && (
+          renderPasswordRequirements()
+        )}
       </div>
     </div>
   );

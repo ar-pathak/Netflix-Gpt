@@ -31,6 +31,9 @@ export const validateName = (name) => {
   if (name.length < 2) {
     return 'Name must be at least 2 characters long';
   }
+  if (name.length > 50) {
+    return 'Name must be less than 50 characters';
+  }
   return '';
 };
 
@@ -54,6 +57,40 @@ export const validateSignUpForm = (values) => {
   if (nameError) errors.name = nameError;
   if (emailError) errors.email = emailError;
   if (passwordError) errors.password = passwordError;
+
+  return errors;
+};
+
+export const validateProfileForm = (values) => {
+  const errors = {};
+
+  // Display Name validation
+  if (values.displayName) {
+    const nameError = validateName(values.displayName);
+    if (nameError) errors.displayName = nameError;
+  }
+
+  // Email validation
+  if (values.email) {
+    const emailError = validateEmail(values.email);
+    if (emailError) errors.email = emailError;
+  }
+
+  // New Password validation
+  if (values.newPassword) {
+    const passwordError = validatePassword(values.newPassword);
+    if (passwordError) errors.newPassword = passwordError;
+
+    // Confirm Password validation
+    if (values.confirmPassword !== values.newPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+  }
+
+  // Current Password validation
+  if ((values.newPassword || values.email !== values.originalEmail) && !values.currentPassword) {
+    errors.currentPassword = 'Current password is required for this change';
+  }
 
   return errors;
 }; 
