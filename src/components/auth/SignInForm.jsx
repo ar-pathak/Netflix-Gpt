@@ -1,16 +1,17 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router";
 import { useToast } from "../../context/ToastContext";
 import FormInput from "../common/FormInput";
 import useForm from "../../hooks/useForm";
 import { validateSignInForm } from "../../utils/validation";
 import { auth } from "../../utils/firebase";
 import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from "firebase/auth";
-import { useNavigate } from "react-router";
 
 const SignInForm = ({ onToggleForm }) => {
     const { showToast } = useToast();
     const navigate = useNavigate();
     const [rememberMe, setRememberMe] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     
     const initialValues = {
         email: '',
@@ -27,6 +28,9 @@ const SignInForm = ({ onToggleForm }) => {
     } = useForm(initialValues, validateSignInForm);
 
     const onSubmit = async (formValues) => {
+        if (isLoading) return;
+        setIsLoading(true);
+
         try {
             // Set persistence based on remember me checkbox
             await setPersistence(
@@ -34,6 +38,7 @@ const SignInForm = ({ onToggleForm }) => {
                 rememberMe ? browserLocalPersistence : browserSessionPersistence
             );
 
+            // Sign in
             await signInWithEmailAndPassword(
                 auth,
                 formValues.email,
@@ -41,7 +46,12 @@ const SignInForm = ({ onToggleForm }) => {
             );
             
             showToast("Signed in successfully!", "success");
-            navigate("/browse");
+            
+            // Small delay to ensure auth state is updated
+            setTimeout(() => {
+                navigate("/browse", { replace: true });
+            }, 100);
+
         } catch (error) {
             console.error("Sign in error:", error);
             let errorMessage = "An error occurred during sign in.";
@@ -61,6 +71,7 @@ const SignInForm = ({ onToggleForm }) => {
             }
             
             showToast(errorMessage, "error");
+            setIsLoading(false);
         }
     };
 
@@ -88,6 +99,7 @@ const SignInForm = ({ onToggleForm }) => {
                         placeholder="Email or mobile number"
                         error={errors.email}
                         touched={touched.email}
+                        disabled={isLoading}
                     />
                     <FormInput
                         type="password"
@@ -98,12 +110,14 @@ const SignInForm = ({ onToggleForm }) => {
                         placeholder="Password"
                         error={errors.password}
                         touched={touched.password}
+                        disabled={isLoading}
                     />
                     <button 
                         type="submit"
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-sm w-full transition"
+                        className={`bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-sm w-full transition ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        disabled={isLoading}
                     >
-                        Sign In
+                        {isLoading ? 'Signing in...' : 'Sign In'}
                     </button>
                 </form>
 
@@ -115,6 +129,7 @@ const SignInForm = ({ onToggleForm }) => {
                             type="checkbox" 
                             checked={rememberMe}
                             onChange={(e) => setRememberMe(e.target.checked)}
+                            disabled={isLoading}
                         />
                         <span>Remember me</span>
                     </label>
@@ -124,11 +139,16 @@ const SignInForm = ({ onToggleForm }) => {
                 <div className="mt-6 text-gray-400">
                     New to Netflix?{" "}
                     <span
-                        className="font-bold hover:underline cursor-pointer"
-                        onClick={() => onToggleForm(false)}
+                        className={`font-bold hover:underline cursor-pointer ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        onClick={() => !isLoading && onToggleForm(false)}
                     >
                         Sign up now.
                     </span>
+                </div>
+
+                {/* Disclaimer */}
+                <div className="mt-6 text-gray-400 text-sm">
+                    This is a replica of the Netflix login page. It is for practice only—no actual sign-up occurs here.
                 </div>
             </div>
         </div>

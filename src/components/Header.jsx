@@ -84,7 +84,7 @@ const Header = () => {
                         Sign In
                     </button>
                 )}
-            </div>
+        </div>
         </header>
     );
 };

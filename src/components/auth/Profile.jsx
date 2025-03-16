@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import UserContext from '../../context/UserContext';
 import { auth } from '../../utils/firebase';
-import { updateProfile, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
+import { updateProfile, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from 'firebase/auth';
 import { useToast } from '../../context/ToastContext';
 import FormInput from '../common/FormInput';
 import { validateProfileForm } from '../../utils/validation';
@@ -14,6 +14,7 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [verificationSent, setVerificationSent] = useState(false);
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
     const [formData, setFormData] = useState({
@@ -26,30 +27,36 @@ const Profile = () => {
     });
 
     // Check if profile form has any changes
-    const hasProfileChanges = () => {
-        return (
-            formData.displayName !== user?.displayName ||
-            formData.email !== user?.email
-        );
+    const hasChanges = () => {
+        if (!user) return false;
+        
+        const hasDisplayNameChange = formData.displayName !== user.displayName;
+        const hasEmailChange = formData.email !== user.email;
+        const hasPasswordChange = formData.newPassword !== '';
+        
+        return hasDisplayNameChange || hasEmailChange || hasPasswordChange;
     };
 
     // Check if profile form is valid
-    const isProfileFormValid = () => {
-        // Only check errors for profile fields
-        const hasProfileErrors = errors.displayName || errors.email || 
-            (formData.email !== user?.email && errors.currentPassword);
-        
-        if (hasProfileErrors) return false;
-        if (!hasProfileChanges()) return false;
-        if (formData.email !== user?.email && !formData.currentPassword) return false;
-        return true;
-    };
+    const isFormValid = () => {
+        // If email is not verified, only allow display name changes
+        if (!user?.emailVerified) {
+            // For unverified users, only allow display name changes and ensure it's valid
+            if (formData.email !== user.email || formData.newPassword) {
+                return false;
+            }
+            return !errors.displayName && formData.displayName !== user.displayName;
+        }
 
-    // Check if password form is valid
-    const isPasswordFormValid = () => {
-        if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) return false;
-        if (formData.newPassword !== formData.confirmPassword) return false;
-        if (errors.newPassword || errors.confirmPassword) return false;
+        // For verified users, check all validation rules
+        if (Object.keys(errors).length > 0) return false;
+        if (!hasChanges()) return false;
+
+        // Require current password for email or password changes
+        if ((formData.email !== user.email || formData.newPassword) && !formData.currentPassword) {
+            return false;
+        }
+
         return true;
     };
 
@@ -133,7 +140,7 @@ const Profile = () => {
 
     const handlePasswordChange = async (e) => {
         e.preventDefault();
-        if (!isPasswordFormValid()) {
+        if (!isFormValid()) {
             showToast('Please fix the errors before submitting.', 'error');
             return;
         }
@@ -174,64 +181,115 @@ const Profile = () => {
         }
     };
 
-    const handleProfileUpdate = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!isProfileFormValid()) {
-            showToast('Please fix the errors before submitting.', 'error');
-            return;
-        }
+        if (!user) return;
 
-        setLoading(true);
         try {
-            if (formData.email !== user.email) {
-                await handleReauthenticate(formData.currentPassword);
+            setLoading(true);
+            const validationErrors = validateProfileForm(formData, user.email);
+            setErrors(validationErrors);
+
+            if (Object.keys(validationErrors).length > 0) {
+                showToast("Please fix the errors in the form.", "error");
+                return;
             }
 
-            const updates = [];
+            // For unverified users, only allow display name updates
+            if (!user.emailVerified && (formData.email !== user.email || formData.newPassword)) {
+                showToast("Please verify your email before changing email or password.", "error");
+                return;
+            }
 
+            // Handle display name update
             if (formData.displayName !== user.displayName) {
-                updates.push(updateProfile(auth.currentUser, {
+                await updateProfile(auth.currentUser, {
                     displayName: formData.displayName
-                }));
+                });
             }
 
-            if (formData.email !== user.email) {
-                updates.push(updateEmail(auth.currentUser, formData.email));
+            // For verified users, handle email and password updates
+            if (user.emailVerified) {
+                if (formData.email !== user.email || formData.newPassword) {
+                    // Reauthenticate user before sensitive changes
+                    const credential = EmailAuthProvider.credential(user.email, formData.currentPassword);
+                    await reauthenticateWithCredential(auth.currentUser, credential);
+
+                    // Update email if changed
+                    if (formData.email !== user.email) {
+                        await updateEmail(auth.currentUser, formData.email);
+                    }
+
+                    // Update password if provided
+                    if (formData.newPassword) {
+                        await updatePassword(auth.currentUser, formData.newPassword);
+                    }
+                }
             }
 
-            await Promise.all(updates);
-            showToast('Profile updated successfully!', 'success');
+            showToast("Profile updated successfully!", "success");
             setIsEditing(false);
-            setFormData(prev => ({
-                ...prev,
+            setIsChangingPassword(false);
+            // Reset form
+            setFormData({
+                displayName: user.displayName || '',
+                email: user.email || '',
                 currentPassword: '',
-                originalEmail: formData.email
-            }));
-            setTouched({});
-            setErrors({});
+                newPassword: '',
+                confirmPassword: ''
+            });
         } catch (error) {
-            console.error('Profile update error:', error);
-            let errorMessage = 'An error occurred while updating your profile.';
-            
-            switch (error.code) {
-                case 'auth/requires-recent-login':
-                    errorMessage = 'Please sign in again to update your profile.';
-                    break;
-                case 'auth/email-already-in-use':
-                    errorMessage = 'This email is already registered.';
-                    break;
-                case 'auth/invalid-email':
-                    errorMessage = 'Invalid email address.';
-                    break;
-                default:
-                    if (error.message) errorMessage = error.message;
+            console.error("Error updating profile:", error);
+            if (error.code === 'auth/wrong-password') {
+                showToast("Current password is incorrect.", "error");
+            } else {
+                showToast("Error updating profile. Please try again.", "error");
             }
-            
-            showToast(errorMessage, 'error');
         } finally {
             setLoading(false);
         }
     };
+
+    const handleSendVerification = async () => {
+        try {
+            setLoading(true);
+            await sendEmailVerification(auth.currentUser);
+            setVerificationSent(true);
+            showToast("Verification email sent! Please check your inbox.", "success");
+        } catch (error) {
+            console.error("Error sending verification email:", error);
+            showToast("Error sending verification email. Please try again later.", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Email Verification Banner
+    const EmailVerificationBanner = () => (
+        <div className="bg-red-600/10 border border-red-600 rounded-lg p-4 mb-6">
+            <div className="flex flex-col gap-2">
+                <h3 className="text-red-500 font-semibold">Email Not Verified</h3>
+                <p className="text-gray-300">
+                    Please verify your email address to enable profile updates.
+                </p>
+                <button
+                    onClick={handleSendVerification}
+                    disabled={loading || verificationSent}
+                    className={`self-start px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition
+                        ${(loading || verificationSent) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    {loading ? 'Sending...' : 
+                     verificationSent ? 'Verification Email Sent' : 
+                     'Send Verification Email'}
+                </button>
+                {verificationSent && (
+                    <p className="text-green-500 text-sm mt-2">
+                        Verification email sent! Please check your inbox and refresh this page after verifying.
+                    </p>
+                )}
+            </div>
+        </div>
+    );
 
     // Reset forms when switching modes
     useEffect(() => {
@@ -262,6 +320,9 @@ const Profile = () => {
                     </button>
                 </div>
 
+                {/* Show verification banner if email is not verified */}
+                {user && !user.emailVerified && <EmailVerificationBanner />}
+
                 <div className="space-y-6">
                     {/* Profile Section */}
                     <div className="bg-gray-900 rounded-lg p-6">
@@ -279,7 +340,7 @@ const Profile = () => {
                         </div>
 
                         {isEditing ? (
-                            <form onSubmit={handleProfileUpdate} className="space-y-6">
+                            <form onSubmit={handleSubmit} className="space-y-6">
                                 <FormInput
                                     label="Display Name"
                                     type="text"
@@ -335,18 +396,35 @@ const Profile = () => {
                                     >
                                         Cancel
                                     </button>
-                                    <button
-                                        type="submit"
-                                        className={`
-                                            px-6 py-2 rounded transition
-                                            ${!isProfileFormValid() 
-                                                ? 'bg-gray-600 cursor-not-allowed opacity-50' 
-                                                : 'bg-red-600 hover:bg-red-700'}
-                                        `}
-                                        disabled={loading || !isProfileFormValid()}
-                                    >
-                                        {loading ? 'Saving...' : 'Save Changes'}
-                                    </button>
+                                    <div className="relative group">
+                                        <button
+                                            type="submit"
+                                            className={`
+                                                px-6 py-2 rounded transition
+                                                ${!isFormValid() 
+                                                    ? 'bg-gray-600 cursor-not-allowed opacity-50' 
+                                                    : 'bg-red-600 hover:bg-red-700'}
+                                            `}
+                                            disabled={loading || !isFormValid()}
+                                        >
+                                            {loading ? 'Saving...' : 'Save Changes'}
+                                        </button>
+                                        {!isFormValid() && (
+                                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-900 text-white text-sm rounded-lg p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                {!user?.emailVerified ? (
+                                                    <p>Please verify your email before making changes</p>
+                                                ) : !hasChanges() ? (
+                                                    <p>No changes have been made to save</p>
+                                                ) : Object.keys(errors).length > 0 ? (
+                                                    <p>Please fix the validation errors</p>
+                                                ) : (formData.email !== user.email && !formData.currentPassword) ? (
+                                                    <p>Current password required to change email</p>
+                                                ) : (
+                                                    <p>Please fill in all required fields</p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </form>
                         ) : (
@@ -357,7 +435,14 @@ const Profile = () => {
                                 </div>
                                 <div>
                                     <label className="text-sm text-gray-400">Email</label>
-                                    <p className="text-white">{user?.email}</p>
+                                    <p className="text-white flex items-center gap-2">
+                                        {user?.email}
+                                        {user?.emailVerified ? (
+                                            <span className="text-green-500 text-sm">(Verified)</span>
+                                        ) : (
+                                            <span className="text-red-500 text-sm">(Not Verified)</span>
+                                        )}
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -368,17 +453,28 @@ const Profile = () => {
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-semibold">Password</h2>
                             {!isChangingPassword && !isEditing && (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsChangingPassword(true)}
-                                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
-                                >
-                                    Change Password
-                                </button>
+                                <div className="relative group">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsChangingPassword(true)}
+                                        className={`
+                                            bg-red-600 text-white px-4 py-2 rounded transition
+                                            ${!user?.emailVerified ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}
+                                        `}
+                                        disabled={!user?.emailVerified}
+                                    >
+                                        Change Password
+                                    </button>
+                                    {!user?.emailVerified && (
+                                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-900 text-white text-sm rounded-lg p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                            <p>Please verify your email before changing password</p>
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </div>
 
-                        {isChangingPassword ? (
+                        {isChangingPassword && (
                             <form onSubmit={handlePasswordChange} className="space-y-6">
                                 <FormInput
                                     label="Current Password"
@@ -432,24 +528,39 @@ const Profile = () => {
                                     >
                                         Cancel
                                     </button>
-                                    <button
-                                        type="submit"
-                                        className={`
-                                            px-6 py-2 rounded transition
-                                            ${!isPasswordFormValid() 
-                                                ? 'bg-gray-600 cursor-not-allowed opacity-50' 
-                                                : 'bg-red-600 hover:bg-red-700'}
-                                        `}
-                                        disabled={loading || !isPasswordFormValid()}
-                                    >
-                                        {loading ? 'Updating...' : 'Update Password'}
-                                    </button>
+                                    <div className="relative group">
+                                        <button
+                                            type="submit"
+                                            className={`
+                                                px-6 py-2 rounded transition
+                                                ${!isFormValid()
+                                                    ? 'bg-gray-600 cursor-not-allowed opacity-50' 
+                                                    : 'bg-red-600 hover:bg-red-700'}
+                                            `}
+                                            disabled={loading || !isFormValid()}
+                                        >
+                                            {loading ? 'Updating...' : 'Update Password'}
+                                        </button>
+                                        {!isFormValid() && (
+                                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-900 text-white text-sm rounded-lg p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                {!user?.emailVerified ? (
+                                                    <p>Please verify your email before changing password</p>
+                                                ) : !formData.currentPassword ? (
+                                                    <p>Current password is required</p>
+                                                ) : !formData.newPassword ? (
+                                                    <p>New password is required</p>
+                                                ) : !formData.confirmPassword ? (
+                                                    <p>Please confirm your new password</p>
+                                                ) : Object.keys(errors).length > 0 ? (
+                                                    <p>Please fix the validation errors</p>
+                                                ) : (
+                                                    <p>Please fill in all required fields</p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </form>
-                        ) : (
-                            <p className="text-gray-400">
-                                ••••••••
-                            </p>
                         )}
                     </div>
                 </div>
