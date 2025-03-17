@@ -1,19 +1,18 @@
-
 import React from 'react'
 import Header from './Header'
+import { APP_CONFIG } from '../utils/constants'
 
 const Browse = () => {
     return (
-        <>
-            <div className="bg-black h-screen">
-                <Header />  
-                <div className="flex items-center justify-center h-screen">
-                    <h1 className="text-white text-4xl font-bold">
-                        Browse
-                    </h1>
-                </div>
+        <div>
+            <Header />
+            <div className="pt-20 px-8">
+                <h1 className="text-3xl text-white font-bold">
+                    {APP_CONFIG.NAME} - {APP_CONFIG.DESCRIPTION}
+                </h1>
+                {/* Movie content will be added here */}
             </div>
-        </>
+        </div>
     )
 }
 

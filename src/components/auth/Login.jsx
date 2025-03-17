@@ -1,67 +1,42 @@
-import React, { useState, useEffect, useContext } from "react";
-import { Navigate } from "react-router";
-import LoginNavbar from "./LoginNavbar";
-import LoginFooter from "./LoginFooter";
-import SignInForm from "./SignInForm";
-import SignUpForm from "./SignUpForm";
-import UserContext from "../../context/UserContext";
-import { useToast } from "../../context/ToastContext";
+import React, { useState } from 'react';
+import LoginNavbar from './LoginNavbar';
+import SignInForm from './SignInForm';
+import SignUpForm from './SignUpForm';
+import { APP_CONFIG } from '../../utils/constants';
 
-const Login = ({ defaultForm = "signin" }) => {
-    const { loggedInStatus } = useContext(UserContext);
-    const { showToast } = useToast();
-    const [userStatus, setUserStatus] = useState(defaultForm === "signin");
-    const [isLoading, setIsLoading] = useState(true);
-
-    // Update userStatus when defaultForm changes
-    useEffect(() => {
-        setUserStatus(defaultForm === "signin");
-    }, [defaultForm]);
-
-    // Handle authentication check
-    useEffect(() => {
-        let timeoutId;
-
-        if (loggedInStatus !== null) {
-            setIsLoading(false);
-            if (loggedInStatus) {
-                showToast("You are already logged in", "info");
-            }
-        } else {
-            // Set a timeout to prevent infinite loading
-            timeoutId = setTimeout(() => {
-                setIsLoading(false);
-            }, 2000);
-        }
-
-        return () => {
-            if (timeoutId) clearTimeout(timeoutId);
-        };
-    }, [loggedInStatus, showToast]);
-
-    // Show loading state
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600 mb-4"></div>
-                <p className="text-white text-lg">Loading...</p>
-            </div>
-        );
-    }
-
-    // Redirect logged-in users to browse page
-    if (loggedInStatus) {
-        return <Navigate to="/browse" replace />;
-    }
+const Login = () => {
+    const [isSignIn, setIsSignIn] = useState(true);
 
     return (
         <div className="min-h-screen bg-black">
-            <LoginNavbar />
-            {userStatus ? 
-                <SignInForm onToggleForm={setUserStatus} /> : 
-                <SignUpForm onToggleForm={setUserStatus} />
-            }
-            <LoginFooter />
+            {/* Background Image */}
+            <div className="absolute inset-0 bg-[url('https://assets.nflxext.com/ffe/siteui/vlv3/93da5c27-be66-427c-8b72-5cb39d275279/94eb5ad7-10d8-4cca-bf45-ac52e0a052c0/IN-en-20240226-popsignuptwoweeks-perspective_alpha_website_large.jpg')] bg-cover bg-center">
+                <div className="absolute inset-0 bg-black bg-opacity-50" />
+            </div>
+
+            {/* Content */}
+            <div className="relative min-h-screen flex flex-col">
+                <LoginNavbar />
+                
+                <div className="flex-1 flex items-center justify-center px-4">
+                    <div className="bg-black bg-opacity-75 p-8 rounded-lg w-full max-w-md">
+                        <h1 className="text-white text-3xl font-bold mb-8">
+                            {isSignIn ? 'Sign In' : 'Sign Up'}
+                        </h1>
+
+                        {isSignIn ? (
+                            <SignInForm onToggleForm={() => setIsSignIn(false)} />
+                        ) : (
+                            <SignUpForm onToggleForm={() => setIsSignIn(true)} />
+                        )}
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <footer className="relative py-4 text-center text-gray-500 text-sm">
+                    {APP_CONFIG.FOOTER_TEXT}
+                </footer>
+            </div>
         </div>
     );
 };

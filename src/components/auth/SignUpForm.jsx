@@ -1,157 +1,219 @@
 import React, { useState } from "react";
 import { useToast } from "../../context/ToastContext";
 import FormInput from "../common/FormInput";
-import useForm from "../../hooks/useForm";
-import { validateSignUpForm } from "../../utils/validation";
 import { auth } from "../../utils/firebase";
-import { createUserWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence, browserSessionPersistence } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
 import { useNavigate } from "react-router";
+import { ROUTES, FIREBASE_ERROR_CODES, VALIDATION_MESSAGES, PASSWORD_RULES, IMAGES } from '../../utils/constants';
 
 const SignUpForm = ({ onToggleForm }) => {
-    const { showToast } = useToast();
     const navigate = useNavigate();
-    const [rememberMe, setRememberMe] = useState(false);
-    
-    const initialValues = {
-        name: '',
+    const { showToast } = useToast();
+    const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        displayName: '',
         email: '',
-        password: ''
+        password: '',
+        confirmPassword: ''
+    });
+    const [errors, setErrors] = useState({});
+    const [touched, setTouched] = useState({});
+
+    const validateForm = () => {
+        const newErrors = {};
+
+        if (!formData.displayName) {
+            newErrors.displayName = VALIDATION_MESSAGES.REQUIRED;
+        } else if (formData.displayName.length < 2) {
+            newErrors.displayName = VALIDATION_MESSAGES.INVALID_NAME;
+        }
+
+        if (!formData.email) {
+            newErrors.email = VALIDATION_MESSAGES.REQUIRED;
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            newErrors.email = VALIDATION_MESSAGES.INVALID_EMAIL;
+        }
+
+        if (!formData.password) {
+            newErrors.password = VALIDATION_MESSAGES.REQUIRED;
+        } else {
+            if (formData.password.length < PASSWORD_RULES.MIN_LENGTH) {
+                newErrors.password = `Password must be at least ${PASSWORD_RULES.MIN_LENGTH} characters`;
+            }
+            if (!PASSWORD_RULES.UPPERCASE.test(formData.password)) {
+                newErrors.password = 'Password must contain at least one uppercase letter';
+            }
+            if (!PASSWORD_RULES.LOWERCASE.test(formData.password)) {
+                newErrors.password = 'Password must contain at least one lowercase letter';
+            }
+            if (!PASSWORD_RULES.NUMBER.test(formData.password)) {
+                newErrors.password = 'Password must contain at least one number';
+            }
+            if (!PASSWORD_RULES.SPECIAL_CHAR.test(formData.password)) {
+                newErrors.password = 'Password must contain at least one special character';
+            }
+        }
+
+        if (!formData.confirmPassword) {
+            newErrors.confirmPassword = VALIDATION_MESSAGES.REQUIRED;
+        } else if (formData.password !== formData.confirmPassword) {
+            newErrors.confirmPassword = VALIDATION_MESSAGES.PASSWORD_MISMATCH;
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
-    const {
-        values,
-        errors,
-        touched,
-        handleChange,
-        handleBlur,
-        handleSubmit
-    } = useForm(initialValues, validateSignUpForm);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-    const onSubmit = async (formValues) => {
+        if (!validateForm()) {
+            showToast('Please fix the errors in the form', 'error');
+            return;
+        }
+
+        setLoading(true);
         try {
-            // Set persistence based on remember me checkbox
-            await setPersistence(
-                auth,
-                rememberMe ? browserLocalPersistence : browserSessionPersistence
-            );
-
-            // Create user with email and password
             const userCredential = await createUserWithEmailAndPassword(
                 auth,
-                formValues.email,
-                formValues.password
+                formData.email,
+                formData.password
             );
 
-            // Update user profile with name
             await updateProfile(userCredential.user, {
-                displayName: formValues.name
+                displayName: formData.displayName
             });
 
-            showToast("Account created successfully!", "success");
-            navigate("/browse");
+            await sendEmailVerification(userCredential.user);
+
+            showToast('Account created successfully! Please verify your email.', 'success');
+            navigate(ROUTES.BROWSE);
         } catch (error) {
-            console.error("Sign up error:", error);
-            let errorMessage = "An error occurred during sign up.";
-            
-            switch (error.code) {
-                case 'auth/email-already-in-use':
-                    errorMessage = "This email is already registered.";
-                    break;
-                case 'auth/invalid-email':
-                    errorMessage = "Invalid email address.";
-                    break;
-                case 'auth/weak-password':
-                    errorMessage = "Password should be at least 6 characters.";
-                    break;
-                default:
-                    errorMessage = error.message;
-            }
-            
-            showToast(errorMessage, "error");
+            console.error('Sign up error:', error);
+            const errorMessage = FIREBASE_ERROR_CODES[error.code] || 'An error occurred while signing up';
+            showToast(errorMessage, 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
+    };
+
+    const handleBlur = (e) => {
+        const { name } = e.target;
+        setTouched(prev => ({
+            ...prev,
+            [name]: true
+        }));
+
+        // Validate the field on blur
+        validateForm();
+    };
+
     return (
-        <div className="flex items-center justify-center min-h-screen bg-cover bg-center relative"
+        <div className="fixed inset-0 w-full h-full flex items-center justify-center overflow-y-auto py-8">
+            {/* Background Image with Preload */}
+            <div className="fixed inset-0 w-full h-full">
+                <div 
+                    className="absolute inset-0 w-full h-full bg-no-repeat bg-center bg-cover transition-opacity duration-300"
             style={{
-                backgroundImage:
-                    "url(https://assets.nflxext.com/ffe/siteui/vlv3/42a0bce6-fc59-4c1c-b335-7196a59ae9ab/web/IN-en-20250303-TRIFECTA-perspective_d5f81427-d6cf-412d-8e86-2315671b9be1_large.jpg)",
-            }}
-        >
-            {/* Dark Overlay */}
-            <div className="absolute inset-0 bg-black/50"></div>
+                        backgroundImage: `url(${IMAGES.AUTH_BACKGROUND})`,
+                        backgroundColor: '#141414'
+                    }}
+                />
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
+            </div>
 
-            {/* Sign-Up Container */}
-            <div className="bg-black/80 text-white w-[450px] p-8 rounded-lg shadow-lg relative z-10">
-                <h1 className="text-[32px] font-bold mb-6">Sign Up</h1>
-
-                <form className="flex flex-col space-y-4" onSubmit={handleSubmit(onSubmit)}>
+            {/* Form Container */}
+            <div className="relative z-10 bg-black/75 backdrop-blur-sm px-8 sm:px-16 py-12 rounded-lg w-full max-w-md mx-4 my-auto shadow-2xl">
+                <h1 className="text-3xl font-bold text-white mb-8">Create Account</h1>
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    <div className="space-y-6">
                     <FormInput
                         type="text"
-                        name="name"
-                        value={values.name}
-                        onChange={handleChange}
+                            name="displayName"
+                            label="Name"
+                            value={formData.displayName}
+                            onChange={handleInputChange}
                         onBlur={handleBlur}
-                        placeholder="Enter your name"
-                        error={errors.name}
-                        touched={touched.name}
+                            error={touched.displayName ? errors.displayName : ''}
+                            disabled={loading}
                     />
                     <FormInput
-                        type="email"
+                            type="email"
                         name="email"
-                        value={values.email}
-                        onChange={handleChange}
+                            label="Email"
+                            value={formData.email}
+                            onChange={handleInputChange}
                         onBlur={handleBlur}
-                        placeholder="Email or mobile number"
-                        error={errors.email}
-                        touched={touched.email}
+                            error={touched.email ? errors.email : ''}
+                            disabled={loading}
                     />
                     <FormInput
                         type="password"
                         name="password"
-                        value={values.password}
-                        onChange={handleChange}
+                            label="Password"
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            onBlur={handleBlur}
+                            error={touched.password ? errors.password : ''}
+                            disabled={loading}
+                            showPasswordRequirements={true}
+                        />
+                        <FormInput
+                            type="password"
+                            name="confirmPassword"
+                            label="Confirm Password"
+                            value={formData.confirmPassword}
+                            onChange={handleInputChange}
                         onBlur={handleBlur}
-                        placeholder="Password"
-                        error={errors.password}
-                        touched={touched.password}
+                            error={touched.confirmPassword ? errors.confirmPassword : ''}
+                            disabled={loading}
                     />
+                    </div>
+
+                    <div className="space-y-4">
                     <button 
                         type="submit"
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-sm w-full transition"
-                    >
-                        Sign Up
+                            className={`w-full py-3.5 rounded bg-red-600 text-white font-semibold text-lg
+                                ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700 transition-colors'}`}
+                            disabled={loading}
+                        >
+                            {loading ? 'Creating account...' : 'Sign Up'}
+                        </button>
+                        
+                        <p className="text-gray-400 text-center">
+                            Already have an account?{' '}
+                            <button
+                                type="button"
+                                onClick={() => onToggleForm()}
+                                className="text-white hover:underline font-semibold"
+                                disabled={loading}
+                            >
+                                Sign in now
                     </button>
+                        </p>
+                    </div>
                 </form>
 
-                {/* Remember Me Section */}
-                <div className="flex items-center mt-4">
-                    <label className="flex items-center cursor-pointer">
-                        <input 
-                            className="h-5 w-5 mr-2" 
-                            type="checkbox" 
-                            checked={rememberMe}
-                            onChange={(e) => setRememberMe(e.target.checked)}
-                        />
-                        <span>Remember me</span>
-                    </label>
-                </div>
-
-                {/* Sign-In Link */}
-                <div className="mt-6 text-gray-400">
-                    Already have an account?{" "}
-                    <span
-                        className="font-bold hover:underline cursor-pointer"
-                        onClick={() => onToggleForm(true)}
-                    >
-                        Sign in now.
-                    </span>
-                </div>
-
                 {/* Disclaimer */}
-                <div className="mt-6 text-gray-400 text-sm">
-                    This is a replica of the Netflix login page. It is for practice only—no actual sign-up occurs here.
-                </div>
+                <p className="mt-8 text-gray-400 text-sm">
+                    This page is protected by Google reCAPTCHA to ensure you're not a bot.
+                </p>
             </div>
         </div>
     );

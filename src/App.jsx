@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
 import { ToastProvider } from "./context/ToastContext";
 import { UserProvider } from "./context/UserContext";
+import { ROUTES } from "./utils/constants";
 import Login from "./components/auth/Login";
 import Browse from "./components/Browse";
 import Profile from "./components/auth/Profile";
@@ -8,15 +9,25 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import { useContext } from "react";
 import UserContext from "./context/UserContext";
 import { useToast } from "./context/ToastContext";
+import LogInHelp from './components/auth/LogInHelp';
 
 // Public route guard - redirects to browse if already logged in
 const PublicRoute = ({ children }) => {
-    const { loggedInStatus } = useContext(UserContext);
+    const { user, loading } = useContext(UserContext);
     const { showToast } = useToast();
 
-    if (loggedInStatus) {
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600 mb-4"></div>
+                <p className="text-white text-lg">Loading...</p>
+            </div>
+        );
+    }
+
+    if (user) {
         showToast("You are already logged in", "info");
-        return <Navigate to="/browse" replace />;
+        return <Navigate to={ROUTES.BROWSE} replace />;
     }
 
     return children;
@@ -24,20 +35,18 @@ const PublicRoute = ({ children }) => {
 
 // Root route handler - redirects based on auth status
 const RootRoute = () => {
-    const { loggedInStatus } = useContext(UserContext);
+    const { user, loading } = useContext(UserContext);
 
-    // If auth status is known, redirect accordingly
-    if (loggedInStatus !== null) {
-        return loggedInStatus ? <Navigate to="/browse" replace /> : <Navigate to="/login" replace />;
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600 mb-4"></div>
+                <p className="text-white text-lg">Loading...</p>
+            </div>
+        );
     }
 
-    // Show loading while checking auth status
-    return (
-        <div className="min-h-screen bg-black flex flex-col items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600 mb-4"></div>
-            <p className="text-white text-lg">Loading...</p>
-        </div>
-    );
+    return user ? <Navigate to={ROUTES.BROWSE} replace /> : <Navigate to={ROUTES.LOGIN} replace />;
 };
 
 const App = () => {
@@ -48,7 +57,7 @@ const App = () => {
                     <Routes>
                         {/* Public Routes - Redirect to browse if logged in */}
                         <Route
-                            path="/login"
+                            path={ROUTES.LOGIN}
                             element={
                                 <PublicRoute>
                                     <Login defaultForm="signin" />
@@ -56,17 +65,25 @@ const App = () => {
                             }
                         />
                         <Route
-                            path="/signup"
+                            path={ROUTES.SIGN_UP}
                             element={
                                 <PublicRoute>
                                     <Login defaultForm="signup" />
                                 </PublicRoute>
                             }
                         />
+                        <Route
+                            path={ROUTES.HELP}
+                            element={
+                                <PublicRoute>
+                                    <LogInHelp />
+                                </PublicRoute>
+                            }
+                        />
 
                         {/* Protected Routes - Require authentication */}
                         <Route
-                            path="/browse"
+                            path={ROUTES.BROWSE}
                             element={
                                 <ProtectedRoute>
                                     <Browse />
@@ -74,7 +91,7 @@ const App = () => {
                             }
                         />
                         <Route
-                            path="/profile"
+                            path={ROUTES.PROFILE}
                             element={
                                 <ProtectedRoute>
                                     <Profile />
@@ -83,10 +100,10 @@ const App = () => {
                         />
 
                         {/* Root Route - Redirect based on auth status */}
-                        <Route path="/" element={<RootRoute />} />
+                        <Route path={ROUTES.HOME} element={<RootRoute />} />
 
                         {/* Catch all - Redirect to root */}
-                        <Route path="*" element={<Navigate to="/" replace />} />
+                        <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
                     </Routes>
                 </ToastProvider>
             </UserProvider>
