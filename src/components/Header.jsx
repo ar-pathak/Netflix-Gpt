@@ -33,9 +33,6 @@ const Header = () => {
             </Link>
             {user && (
                 <div className="flex items-center gap-4">
-                    <Link to={ROUTES.SEARCH} className="text-white hover:text-gray-300 transition">
-                        Search
-                    </Link>
                     <div className="relative group">
                         <img
                             className="w-8 h-8 rounded cursor-pointer"

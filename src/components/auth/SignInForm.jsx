@@ -87,7 +87,7 @@ const SignInForm = ({ onToggleForm }) => {
             <div className="fixed inset-0 w-full h-full">
                 <div 
                     className="absolute inset-0 w-full h-full bg-no-repeat bg-center bg-cover transition-opacity duration-300"
-                    style={{ 
+            style={{
                         backgroundImage: `url(${IMAGES.AUTH_BACKGROUND})`,
                         backgroundColor: '#141414' // Netflix's background color as fallback
                     }}
@@ -100,13 +100,13 @@ const SignInForm = ({ onToggleForm }) => {
                 <h1 className="text-3xl font-bold text-white mb-8">Sign In</h1>
                 <form onSubmit={handleSubmit} className="space-y-8">
                     <div className="space-y-6">
-                        <FormInput
+                    <FormInput
                             type="email"
-                            name="email"
+                        name="email"
                             label="Email"
                             value={formData.email}
                             onChange={handleInputChange}
-                            onBlur={handleBlur}
+                        onBlur={handleBlur}
                             error={touched.email ? errors.email : ''}
                             disabled={loading}
                         />
@@ -123,8 +123,8 @@ const SignInForm = ({ onToggleForm }) => {
                     </div>
 
                     <div className="space-y-4">
-                        <button
-                            type="submit"
+                    <button
+                        type="submit"
                             className={`w-full py-3.5 rounded bg-red-600 text-white font-semibold text-lg
                                 ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700 transition-colors'}`}
                             disabled={loading}
@@ -160,7 +160,7 @@ const SignInForm = ({ onToggleForm }) => {
                                 disabled={loading}
                             >
                                 Sign up now
-                            </button>
+                    </button>
                         </p>
                     </div>
                 </form>
