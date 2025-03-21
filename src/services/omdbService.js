@@ -91,7 +91,7 @@ export const omdbService = {
                 };
             }
 
-            const url = `${API_ENDPOINTS.OMDB.BASE_URL}${API_ENDPOINTS.OMDB.DETAILS}${imdbId}&apikey=${API_ENDPOINTS.OMDB.API_KEY}`;
+            const url = `${API_ENDPOINTS.OMDB.BASE_URL}${API_ENDPOINTS.OMDB.DETAILS}${imdbId}&apikey=${API_ENDPOINTS.OMDB.API_KEY}&plot=full`;
             console.log('Fetching details from URL:', url);
             
             const response = await fetch(url);
@@ -106,6 +106,57 @@ export const omdbService = {
             return validateApiResponse(data, 'movie details');
         } catch (err) {
             return handleApiError(err, 'fetching movie details');
+        }
+    },
+
+    // Find trailer using YouTube API and movie/show title
+    getTrailer: async (title, year = '', type = 'movie') => {
+        try {
+            if (!title) {
+                return {
+                    success: false,
+                    error: 'Invalid title for trailer search'
+                };
+            }
+
+            // Construct search query for best trailer results
+            const searchQuery = `${title} ${year} ${type === 'series' ? 'TV series' : 'movie'} official trailer`;
+            const encodedQuery = encodeURIComponent(searchQuery);
+            
+            // For more reliable trailer loading, create a direct search URL
+            // This will open in a new window instead of failing in the embed
+            const trailerInfo = {
+                // This is a special key format our VideoPlayer will recognize
+                key: `direct_search:${encodedQuery}`,
+                name: `${title} Official Trailer`,
+                type: 'Trailer',
+                site: 'YouTube'
+            };
+            
+            return {
+                success: true,
+                data: trailerInfo
+            };
+        } catch (err) {
+            return handleApiError(err, 'finding trailer');
+        }
+    },
+    
+    // Get popular movies/shows for homepage
+    getPopularContent: async (type = 'movie') => {
+        try {
+            // Use some popular search terms to get good content
+            const searchTerms = type === 'movie' 
+                ? ['marvel', 'action', 'comedy', 'thriller', 'sci-fi']
+                : ['series', 'tv', 'show', 'drama'];
+                
+            // Pick a random search term
+            const randomTerm = searchTerms[Math.floor(Math.random() * searchTerms.length)];
+            
+            const result = await omdbService.searchMovies(randomTerm, { type });
+            return result;
+        } catch (err) {
+            return handleApiError(err, 'fetching popular content');
         }
     }
 }; 

@@ -1,25 +1,33 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { FaSearch, FaTimes, FaSpinner } from 'react-icons/fa';
 
+// Popular search suggestions
 const POPULAR_SEARCHES = ['marvel', 'star wars', 'avengers', 'batman', 'spider-man', 'lord of the rings', 'harry potter'];
 
-const SearchForm = ({ searchQuery, onSearchChange, onSubmit, isLoading }) => {
+const SearchForm = ({ onSearch }) => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const inputRef = useRef(null);
     const suggestionsRef = useRef(null);
     
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (searchQuery.trim()) {
-            onSubmit(searchQuery);
+            setIsLoading(true);
+            await onSearch(searchQuery);
+            setIsLoading(false);
             inputRef.current?.blur();
             setShowSuggestions(false);
         }
     };
     
-    const handleSuggestionClick = (suggestion) => {
-        onSearchChange(suggestion);
-        onSubmit(suggestion);
+    const handleSuggestionClick = async (suggestion) => {
+        setSearchQuery(suggestion);
+        setIsLoading(true);
+        await onSearch(suggestion);
+        setIsLoading(false);
         setShowSuggestions(false);
     };
     
@@ -45,6 +53,12 @@ const SearchForm = ({ searchQuery, onSearchChange, onSubmit, isLoading }) => {
         };
     }, []);
 
+    const handleClearSearch = () => {
+        setSearchQuery('');
+        onSearch(''); // Clear search results
+        inputRef.current?.focus();
+    };
+
     return (
         <div className="mb-8 relative">
             <div className="max-w-3xl mx-auto">
@@ -56,7 +70,7 @@ const SearchForm = ({ searchQuery, onSearchChange, onSubmit, isLoading }) => {
                                     ref={inputRef}
                                     type="text"
                                     value={searchQuery}
-                                    onChange={(e) => onSearchChange(e.target.value)}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search for movies, shows, directors..."
                                     className="w-full px-5 py-4 pr-12 rounded-l-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 transition-shadow text-lg"
                                     disabled={isLoading}
@@ -66,12 +80,10 @@ const SearchForm = ({ searchQuery, onSearchChange, onSubmit, isLoading }) => {
                                     <button
                                         type="button"
                                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                                        onClick={() => onSearchChange('')}
+                                        onClick={handleClearSearch}
                                         aria-label="Clear search"
                                     >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                                        </svg>
+                                        <FaTimes className="w-5 h-5" />
                                     </button>
                                 )}
                             </div>
@@ -85,12 +97,10 @@ const SearchForm = ({ searchQuery, onSearchChange, onSubmit, isLoading }) => {
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
-                                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                                    <FaSpinner className="animate-spin h-5 w-5" />
                                 ) : (
                                     <>
-                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                        </svg>
+                                        <FaSearch className="w-5 h-5 mr-2" />
                                         Search
                                     </>
                                 )}
@@ -112,9 +122,7 @@ const SearchForm = ({ searchQuery, onSearchChange, onSubmit, isLoading }) => {
                                             onClick={() => handleSuggestionClick(suggestion)}
                                         >
                                             <span className="mr-2 text-gray-400 group-hover:text-red-400">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                                </svg>
+                                                <FaSearch className="w-4 h-4" />
                                             </span>
                                             {suggestion}
                                         </button>
@@ -143,10 +151,7 @@ const SearchForm = ({ searchQuery, onSearchChange, onSubmit, isLoading }) => {
 };
 
 SearchForm.propTypes = {
-    searchQuery: PropTypes.string.isRequired,
-    onSearchChange: PropTypes.func.isRequired,
-    onSubmit: PropTypes.func.isRequired,
-    isLoading: PropTypes.bool
+    onSearch: PropTypes.func.isRequired
 };
 
 export default SearchForm; 

@@ -1,15 +1,17 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import UserContext from '../context/UserContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../utils/firebase';
 import { useToast } from '../context/ToastContext';
 import { LOGO_URL, USER_AVATAR, ROUTES } from '../utils/constants';
+import { FaUserCircle, FaSignOutAlt, FaCog, FaChevronDown } from 'react-icons/fa';
 
 const Header = () => {
     const { user } = useContext(UserContext);
     const navigate = useNavigate();
     const { showToast } = useToast();
+    const [dropdownOpen, setDropdownOpen] = useState(false);
 
     const handleSignOut = async () => {
         try {
@@ -23,43 +25,75 @@ const Header = () => {
     };
 
     return (
-        <div className="absolute w-full px-8 py-2 bg-gradient-to-b from-black z-10 flex justify-between items-center">
-            <Link to={ROUTES.HOME}>
+        <div className="fixed w-full px-8 py-3 bg-gradient-to-b from-black to-transparent z-50 flex justify-between items-center">
+            <Link to={ROUTES.HOME} className="flex items-center">
                 <img
-                    className="w-44"
+                    className="w-32 md:w-44"
                     src={LOGO_URL}
                     alt="Netflix Logo"
                 />
             </Link>
+            
             {user && (
                 <div className="flex items-center gap-4">
-                    <div className="relative group">
-                        <img
-                            className="w-8 h-8 rounded cursor-pointer"
-                            src={user.photoURL || USER_AVATAR}
-                            alt="User Avatar"
-                        />
-                        <div className="absolute right-0 mt-2 w-48 bg-black border border-gray-700 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <div className="py-2">
-                                <div className="px-4 py-2 text-sm text-gray-300">
-                                    <div className="font-semibold">{user.displayName || 'User'}</div>
+                    <div className="relative">
+                        <button 
+                            className="flex items-center space-x-2 text-white focus:outline-none"
+                            onClick={() => setDropdownOpen(!dropdownOpen)}
+                        >
+                            <div className="relative flex items-center group">
+                                <img
+                                    className="w-9 h-9 rounded-full border-2 border-transparent group-hover:border-red-600 object-cover transition-all"
+                                    src={user.photoURL || USER_AVATAR}
+                                    alt="User Avatar"
+                                />
+                                <div className="hidden md:flex flex-col ml-2">
+                                    <span className="text-sm font-medium text-white">{user.displayName || 'User'}</span>
+                                    <span className="text-xs text-gray-400 truncate max-w-[150px]">{user.email}</span>
+                                </div>
+                                <FaChevronDown className="ml-2 text-gray-400 transition-transform duration-200" 
+                                    style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0)' }} 
+                                />
+                            </div>
+                        </button>
+                        
+                        {dropdownOpen && (
+                            <div className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-800 rounded-lg shadow-xl z-10 overflow-hidden">
+                                <div className="p-3 border-b border-gray-800 bg-gradient-to-r from-gray-900 to-gray-800">
+                                    <div className="font-medium text-white">{user.displayName || 'User'}</div>
                                     <div className="text-xs text-gray-400 truncate">{user.email}</div>
                                 </div>
-                                <hr className="border-gray-700" />
-                                <Link
-                                    to={ROUTES.PROFILE}
-                                    className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition"
-                                >
-                                    Account Settings
-                                </Link>
-                                <button
-                                    onClick={handleSignOut}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition"
-                                >
-                                    Sign Out
-                                </button>
+                                
+                                <div className="py-1">
+                                    <Link
+                                        to={ROUTES.PROFILE}
+                                        className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
+                                        onClick={() => setDropdownOpen(false)}
+                                    >
+                                        <FaUserCircle className="mr-2" /> Profile
+                                    </Link>
+                                    <Link
+                                        to={ROUTES.SETTINGS}
+                                        className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
+                                        onClick={() => setDropdownOpen(false)}
+                                    >
+                                        <FaCog className="mr-2" /> Settings
+                                    </Link>
+                                </div>
+                                
+                                <div className="border-t border-gray-800">
+                                    <button
+                                        onClick={() => {
+                                            handleSignOut();
+                                            setDropdownOpen(false);
+                                        }}
+                                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
+                                    >
+                                        <FaSignOutAlt className="mr-2" /> Sign Out
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             )}
