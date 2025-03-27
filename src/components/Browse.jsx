@@ -13,7 +13,7 @@ import { useContent } from '../hooks/useContent';
 
 const Browse = () => {
     const [selectedMovie, setSelectedMovie] = useState(null);
-    
+
     const {
         searchQuery,
         searchResults,
@@ -28,17 +28,40 @@ const Browse = () => {
         resetSearch
     } = useMovieSearch();
 
+    // Trending content (Marvel movies)
     const {
         content: trendingContent,
         loading: trendingLoading,
         error: trendingError
     } = useContent('marvel');
 
+    // Popular content (Star Wars)
     const {
         content: popularContent,
         loading: popularLoading,
         error: popularError
     } = useContent('star wars');
+
+    // Action movies
+    const {
+        content: actionContent,
+        loading: actionLoading,
+        error: actionError
+    } = useContent('action', 'movie');
+
+    // Drama series
+    const {
+        content: dramaContent,
+        loading: dramaLoading,
+        error: dramaError
+    } = useContent('drama', 'series');
+
+    // Sci-Fi classics
+    const {
+        content: scifiContent,
+        loading: scifiLoading,
+        error: scifiError
+    } = useContent('sci-fi', 'movie');
 
     useEffect(() => {
         if (searchQuery) {
@@ -94,12 +117,12 @@ const Browse = () => {
                         searchResults={searchResults}
                         searchLoading={searchLoading}
                         searchError={searchError}
-                        currentPage={currentPage}
-                        totalPages={totalPages}
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
                         contentType={contentType}
                         onBack={resetSearch}
                         onMovieSelect={handleMovieSelect}
-                        onPageChange={handlePageChange}
+                                    onPageChange={handlePageChange}
                         onTypeChange={handleTypeChange}
                     />
                 ) : (
@@ -118,6 +141,33 @@ const Browse = () => {
                             movies={popularContent}
                             isLoading={popularLoading}
                             error={popularError}
+                            onMovieSelect={handleMovieSelect}
+                            setSelectedMovie={setSelectedMovie}
+                        />
+
+                        <MovieSection
+                            title="Action Movies"
+                            movies={actionContent}
+                            isLoading={actionLoading}
+                            error={actionError}
+                            onMovieSelect={handleMovieSelect}
+                            setSelectedMovie={setSelectedMovie}
+                        />
+
+                        <MovieSection
+                            title="Drama Series"
+                            movies={dramaContent}
+                            isLoading={dramaLoading}
+                            error={dramaError}
+                            onMovieSelect={handleMovieSelect}
+                            setSelectedMovie={setSelectedMovie}
+                        />
+
+                        <MovieSection
+                            title="Sci-Fi Classics"
+                            movies={scifiContent}
+                            isLoading={scifiLoading}
+                            error={scifiError}
                             onMovieSelect={handleMovieSelect}
                             setSelectedMovie={setSelectedMovie}
                         />
