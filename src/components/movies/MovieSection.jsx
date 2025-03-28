@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaSpinner, FaStar, FaInfoCircle, FaPlay } from 'react-icons/fa';
+import { FaSpinner, FaStar, FaInfoCircle, FaPlay, FaClock, FaFilm, FaCalendar } from 'react-icons/fa';
 import SectionTitle from '../common/SectionTitle';
 import Carousel from '../common/Carousel';
 import MovieCard from '../common/MovieCard';
@@ -21,11 +21,10 @@ const MovieSection = ({ title, movies, isLoading, error, onMovieSelect, setSelec
     });
 
     const renderFeaturedMovie = (movie) => {
-        console.log('Rendering featured movie:', movie);
         return (
-            <div className="overflow-hidden rounded-xl bg-gradient-to-r from-gray-900 to-black border border-gray-800 shadow-xl h-full">
+            <div className="overflow-hidden rounded-xl bg-gradient-to-br from-gray-900 via-gray-800 to-black border border-gray-800 shadow-2xl h-full group">
                 <div className="flex flex-col md:flex-row h-full">
-                    <div className="md:w-1/3 h-48 md:h-auto relative">
+                    <div className="md:w-1/2 h-64 md:h-auto relative overflow-hidden">
                         {movie.Poster && movie.Poster !== 'N/A' ? (
                             <>
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black opacity-50 z-10 md:hidden"></div>
@@ -33,42 +32,84 @@ const MovieSection = ({ title, movies, isLoading, error, onMovieSelect, setSelec
                                 <img
                                     src={movie.Poster}
                                     alt={movie.Title}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                                 />
                             </>
                         ) : (
-                            <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                            <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                                 <span className="text-gray-500">No image available</span>
                             </div>
                         )}
                     </div>
-                    <div className="p-4 md:p-6 flex-1 flex flex-col justify-between">
+                    <div className="p-6 md:p-8 flex-1 flex flex-col justify-between">
                         <div>
-                            <h3 className="text-2xl font-bold text-white mb-2">{movie.Title}</h3>
-                            <div className="flex items-center mb-4 flex-wrap gap-2">
-                                <span className="text-gray-400">{movie.Year}</span>
-                                {movie.imdbRating && (
-                                    <span className="flex items-center text-yellow-400">
-                                        <FaStar className="mr-1" /> {movie.imdbRating}
+                            <div className="flex items-center gap-2 mb-3">
+                                {movie.Type && (
+                                    <span className="px-3 py-1 bg-red-600/80 text-xs text-white rounded-full flex items-center">
+                                        <FaFilm className="mr-1" />
+                                        {movie.Type}
                                     </span>
                                 )}
-                                <span className="px-2 py-1 bg-red-600 bg-opacity-50 text-xs text-white rounded capitalize">
-                                    {movie.Type}
-                                </span>
+                                {movie.Rated && (
+                                    <span className="px-3 py-1 bg-gray-800/80 text-xs text-gray-300 rounded-full">
+                                        {movie.Rated}
+                                    </span>
+                                )}
                             </div>
+
+                            <h3 className="text-3xl font-bold text-white mb-3 drop-shadow-lg">{movie.Title}</h3>
+                            
+                            <div className="flex items-center mb-4 flex-wrap gap-3 text-gray-300">
+                                {movie.Year && (
+                                    <span className="flex items-center">
+                                        <FaCalendar className="mr-2" />
+                                        {movie.Year}
+                                    </span>
+                                )}
+                                {movie.Runtime && (
+                                    <span className="flex items-center">
+                                        <FaClock className="mr-2" />
+                                        {movie.Runtime}
+                                    </span>
+                                )}
+                                {movie.imdbRating && (
+                                    <span className="flex items-center text-yellow-400">
+                                        <FaStar className="mr-2" />
+                                        {movie.imdbRating}/10
+                                    </span>
+                                )}
+                            </div>
+
+                            {movie.Plot && (
+                                <p className="text-gray-300 text-sm line-clamp-3 mb-4">
+                                    {movie.Plot}
+                                </p>
+                            )}
+
+                            {movie.Genre && (
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {movie.Genre.split(', ').slice(0, 3).map((genre) => (
+                                        <span
+                                            key={genre}
+                                            className="px-3 py-1 bg-gray-800/80 text-xs text-gray-300 rounded-full"
+                                        >
+                                            {genre}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                        <div className="flex gap-2">
+
+                        <div className="flex gap-3">
                             <button
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    // Try to play the movie immediately
                                     const loadAndPlayTrailer = async () => {
                                         try {
                                             const response = await omdbService.getTrailer(movie.Title, movie.Year, movie.Type);
                                             if (response.success && response.data) {
                                                 setSelectedMovie({ ...movie, trailer: response.data });
                                             } else {
-                                                // Fall back to info if trailer not available
                                                 onMovieSelect(movie);
                                             }
                                         } catch (error) {
@@ -78,15 +119,15 @@ const MovieSection = ({ title, movies, isLoading, error, onMovieSelect, setSelec
                                     };
                                     loadAndPlayTrailer();
                                 }}
-                                className="px-5 py-2 bg-white hover:bg-gray-200 text-black font-medium rounded-md transition-colors flex items-center gap-2"
+                                className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-all duration-300 flex items-center gap-2 hover:scale-105 hover:shadow-lg hover:shadow-red-500/20"
                             >
-                                <FaPlay className="text-red-600" /> Play
+                                <FaPlay className="text-xl" /> Watch Now
                             </button>
                             <button
                                 onClick={() => onMovieSelect(movie)}
-                                className="px-5 py-2 bg-gray-800 bg-opacity-70 hover:bg-opacity-100 text-white rounded-md transition-colors flex items-center gap-2"
+                                className="px-6 py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2 hover:scale-105 hover:shadow-lg"
                             >
-                                <FaInfoCircle /> More Info
+                                <FaInfoCircle className="text-xl" /> More Info
                             </button>
                         </div>
                     </div>
@@ -96,7 +137,7 @@ const MovieSection = ({ title, movies, isLoading, error, onMovieSelect, setSelec
     };
 
     return (
-        <div className="mb-12">
+        <div className="mb-16">
             <SectionTitle>{title}</SectionTitle>
 
             {isLoading ? (
@@ -104,25 +145,27 @@ const MovieSection = ({ title, movies, isLoading, error, onMovieSelect, setSelec
                     <FaSpinner className="animate-spin text-red-600 text-4xl" />
                 </div>
             ) : error ? (
-                <div className="text-center p-8 bg-gray-800 rounded-lg">
+                <div className="text-center p-8 bg-gray-800/50 rounded-xl backdrop-blur-sm">
                     <p className="text-red-500 mb-2">{error}</p>
                     <p className="text-gray-400">Please try again or explore other sections.</p>
                 </div>
             ) : featuredMovies.length > 0 ? (
                 <>
                     {/* Featured Movies Carousel */}
-                    <div className="mb-6">
+                    <div className="mb-8">
                         <Carousel
                             items={featuredMovies}
                             renderItem={renderFeaturedMovie}
                             autoPlay={true}
                             interval={5000}
+                            showDots={true}
+                            showArrows={true}
                         />
                     </div>
 
                     {/* Other Movies Grid */}
                     {remainingMovies.length > 0 && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
                             {remainingMovies.map((movie) => (
                                 <MovieCard key={movie.imdbID} movie={movie} onClick={onMovieSelect} />
                             ))}
@@ -130,7 +173,7 @@ const MovieSection = ({ title, movies, isLoading, error, onMovieSelect, setSelec
                     )}
                 </>
             ) : (
-                <div className="text-center p-8 bg-gray-800 bg-opacity-50 rounded-lg">
+                <div className="text-center p-8 bg-gray-800/50 rounded-xl backdrop-blur-sm">
                     <p className="text-gray-400">No content available.</p>
                 </div>
             )}
