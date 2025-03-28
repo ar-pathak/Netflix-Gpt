@@ -10,6 +10,7 @@ import { APP_CONFIG } from '../utils/constants';
 import { omdbService } from '../services/omdbService';
 import { useMovieSearch } from '../hooks/useMovieSearch';
 import { useContent } from '../hooks/useContent';
+import useUpcomingContent from '../hooks/useUpcomingContent';
 
 const Browse = () => {
     const [selectedMovie, setSelectedMovie] = useState(null);
@@ -62,6 +63,13 @@ const Browse = () => {
         loading: scifiLoading,
         error: scifiError
     } = useContent('sci-fi', 'movie');
+
+    // Upcoming content
+    const {
+        content: upcomingContent,
+        loading: upcomingLoading,
+        error: upcomingError
+    } = useUpcomingContent();
 
     useEffect(() => {
         if (searchQuery) {
@@ -117,12 +125,12 @@ const Browse = () => {
                         searchResults={searchResults}
                         searchLoading={searchLoading}
                         searchError={searchError}
-                                    currentPage={currentPage}
-                                    totalPages={totalPages}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
                         contentType={contentType}
                         onBack={resetSearch}
                         onMovieSelect={handleMovieSelect}
-                                    onPageChange={handlePageChange}
+                        onPageChange={handlePageChange}
                         onTypeChange={handleTypeChange}
                     />
                 ) : (
@@ -141,6 +149,15 @@ const Browse = () => {
                             movies={popularContent}
                             isLoading={popularLoading}
                             error={popularError}
+                            onMovieSelect={handleMovieSelect}
+                            setSelectedMovie={setSelectedMovie}
+                        />
+
+                        <MovieSection
+                            title="Coming Soon"
+                            movies={upcomingContent}
+                            isLoading={upcomingLoading}
+                            error={upcomingError}
                             onMovieSelect={handleMovieSelect}
                             setSelectedMovie={setSelectedMovie}
                         />
