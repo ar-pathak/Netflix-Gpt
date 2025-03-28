@@ -1,35 +1,21 @@
-import { API_ENDPOINTS } from '../utils/constants';
+import { OMDB_CONFIG } from '../utils/constants';
+import { handleApiError, validateApiResponse, buildUrl, makeApiRequest } from '../utils/apiUtils';
+import { OMDB_TYPES, PLOT_TYPES } from '../types/omdb';
 
-const handleApiError = (error, context) => {
-    console.error(`Error in ${context}:`, error);
-    return {
-        success: false,
-        error: `Error ${context}. Please try again later.`
-    };
-};
-
-const validateApiResponse = (data, context) => {
-    if (!data || typeof data !== 'object') {
-        return {
-            success: false,
-            error: `Invalid response format from ${context}`
-        };
-    }
-
-    if (data.Response === "False") {
-        return {
-            success: false,
-            error: data.Error || `No results found for ${context}`
-        };
-    }
-
-    return { success: true, data };
-};
-
+/**
+ * OMDB API Service
+ * Provides methods for searching and retrieving movie information
+ */
 export const omdbService = {
+    /**
+     * Search for movies, series, or episodes
+     * @param {string} query - Search query
+     * @param {MovieSearchOptions} options - Search options
+     * @returns {Promise<MovieSearchResponse>} Search results
+     */
     searchMovies: async (query, options = {}) => {
         try {
-            if (!query || typeof query !== 'string') {
+            if (!query?.trim()) {
                 return {
                     success: false,
                     error: 'Invalid search query'
@@ -37,28 +23,20 @@ export const omdbService = {
             }
 
             const { page = 1, type = '', year = '' } = options;
+            const params = { page };
             
-            let url = `${API_ENDPOINTS.OMDB.BASE_URL}${API_ENDPOINTS.OMDB.SEARCH}${encodeURIComponent(query)}&apikey=${API_ENDPOINTS.OMDB.API_KEY}&page=${page}`;
-            
-            // Add type filter if specified
-            if (type && ['movie', 'series', 'episode'].includes(type)) {
-                url += `&type=${type}`;
+            if (type && Object.values(OMDB_TYPES).includes(type)) {
+                params.type = type;
             }
             
-            // Add year filter if specified
             if (year) {
-                url += `&y=${year}`;
+                params.y = year;
             }
             
+            const url = buildUrl(OMDB_CONFIG.SEARCH + encodeURIComponent(query.trim()), params);
             console.log('Fetching from URL:', url);
             
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`API Error: ${response.status} ${response.statusText}`);
-            }
-            
-            const data = await response.json();
+            const data = await makeApiRequest(url);
             console.log('API Response:', data);
             
             const validation = validateApiResponse(data, 'search');
@@ -82,25 +60,28 @@ export const omdbService = {
         }
     },
 
+    /**
+     * Get detailed information about a specific movie
+     * @param {string} imdbId - IMDB ID of the movie
+     * @returns {Promise<Object>} Movie details
+     */
     getMovieDetails: async (imdbId) => {
         try {
-            if (!imdbId || typeof imdbId !== 'string') {
+            if (!imdbId?.trim()) {
                 return {
                     success: false,
                     error: 'Invalid movie ID'
                 };
             }
 
-            const url = `${API_ENDPOINTS.OMDB.BASE_URL}${API_ENDPOINTS.OMDB.DETAILS}${imdbId}&apikey=${API_ENDPOINTS.OMDB.API_KEY}&plot=full`;
+            const params = {
+                plot: PLOT_TYPES.FULL
+            };
+
+            const url = buildUrl(OMDB_CONFIG.DETAILS + imdbId.trim(), params);
             console.log('Fetching details from URL:', url);
             
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`API Error: ${response.status} ${response.statusText}`);
-            }
-            
-            const data = await response.json();
+            const data = await makeApiRequest(url);
             console.log('API Details Response:', data);
             
             return validateApiResponse(data, 'movie details');
@@ -109,24 +90,26 @@ export const omdbService = {
         }
     },
 
-    // Find trailer using YouTube API and movie/show title
-    getTrailer: async (title, year = '', type = 'movie') => {
+    /**
+     * Get trailer information for a movie or series
+     * @param {string} title - Title of the movie/series
+     * @param {string} [year=''] - Release year
+     * @param {string} [type=OMDB_TYPES.MOVIE] - Content type
+     * @returns {Promise<Object>} Trailer information
+     */
+    getTrailer: async (title, year = '', type = OMDB_TYPES.MOVIE) => {
         try {
-            if (!title) {
+            if (!title?.trim()) {
                 return {
                     success: false,
                     error: 'Invalid title for trailer search'
                 };
             }
 
-            // Construct search query for best trailer results
-            const searchQuery = `${title} ${year} ${type === 'series' ? 'TV series' : 'movie'} official trailer`;
+            const searchQuery = `${title.trim()} ${year} ${type === OMDB_TYPES.SERIES ? 'TV series' : 'movie'} official trailer`;
             const encodedQuery = encodeURIComponent(searchQuery);
             
-            // For more reliable trailer loading, create a direct search URL
-            // This will open in a new window instead of failing in the embed
             const trailerInfo = {
-                // This is a special key format our VideoPlayer will recognize
                 key: `direct_search:${encodedQuery}`,
                 name: `${title} Official Trailer`,
                 type: 'Trailer',
@@ -142,21 +125,57 @@ export const omdbService = {
         }
     },
     
-    // Get popular movies/shows for homepage
-    getPopularContent: async (type = 'movie') => {
+    /**
+     * Get popular content for the homepage
+     * @param {string} [type=OMDB_TYPES.MOVIE] - Content type
+     * @returns {Promise<MovieSearchResponse>} Popular content
+     */
+    getPopularContent: async (type = OMDB_TYPES.MOVIE) => {
         try {
-            // Use some popular search terms to get good content
-            const searchTerms = type === 'movie' 
+            const searchTerms = type === OMDB_TYPES.MOVIE 
                 ? ['marvel', 'action', 'comedy', 'thriller', 'sci-fi']
                 : ['series', 'tv', 'show', 'drama'];
                 
-            // Pick a random search term
             const randomTerm = searchTerms[Math.floor(Math.random() * searchTerms.length)];
             
-            const result = await omdbService.searchMovies(randomTerm, { type });
-            return result;
+            return await omdbService.searchMovies(randomTerm, { type });
         } catch (err) {
             return handleApiError(err, 'fetching popular content');
+        }
+    },
+
+    /**
+     * Get upcoming movies and series
+     * @returns {Promise<MovieSearchResponse>} Upcoming content
+     */
+    getUpcomingContent: async () => {
+        try {
+            const currentYear = new Date().getFullYear();
+            const nextYear = currentYear + 1;
+            
+            // Fetch both movies and series for the next year
+            const [movies, series] = await Promise.all([
+                omdbService.searchMovies('', { year: nextYear, type: OMDB_TYPES.MOVIE }),
+                omdbService.searchMovies('', { year: nextYear, type: OMDB_TYPES.SERIES })
+            ]);
+
+            // Combine and sort results
+            const allResults = [
+                ...(movies.success ? movies.data : []),
+                ...(series.success ? series.data : [])
+            ].sort((a, b) => {
+                const ratingA = parseFloat(a.imdbRating) || 0;
+                const ratingB = parseFloat(b.imdbRating) || 0;
+                return ratingB - ratingA;
+            });
+
+            return {
+                success: true,
+                data: allResults.slice(0, 20),
+                totalResults: allResults.length
+            };
+        } catch (err) {
+            return handleApiError(err, 'fetching upcoming content');
         }
     }
 }; 

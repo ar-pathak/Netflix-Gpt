@@ -125,12 +125,12 @@ const Browse = () => {
                         searchResults={searchResults}
                         searchLoading={searchLoading}
                         searchError={searchError}
-                        currentPage={currentPage}
-                        totalPages={totalPages}
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
                         contentType={contentType}
                         onBack={resetSearch}
                         onMovieSelect={handleMovieSelect}
-                        onPageChange={handlePageChange}
+                                    onPageChange={handlePageChange}
                         onTypeChange={handleTypeChange}
                     />
                 ) : (

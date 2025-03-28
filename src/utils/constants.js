@@ -79,7 +79,7 @@ export const FIREBASE_ERROR_CODES = {
 // App specific constants
 export const APP_CONFIG = {
   NAME: "Netflix GPT",
-  DESCRIPTION: "AI-Powered Movie Recommendations",
+  DESCRIPTION: "Your AI-powered movie companion",
   API_ENDPOINTS: API_ENDPOINTS,
   VERSION: "1.0.0",
   FOOTER_TEXT: "© 2024 Netflix GPT. All rights reserved.",
@@ -107,4 +107,22 @@ export const IMAGES = {
   USER_AVATAR:
     "https://occ-0-6247-2164.1.nflxso.net/dnm/api/v6/K6hjPJd6cR6FpVELC5Pd6ovHRSk/AAAABdpkabKqQAxyWzo6QW_ZnPz1IZLqlmNfK-t4L1VIeV1DY00JhLo_LMVFp936keDxj-V5UELAVJrU--iUUY2MaDxQSSO-0qw.png?r=e6e",
   AUTH_BACKGROUND: "/images/auth-bg.jpg", // This will be the path to our local image
+};
+
+export const OMDB_CONFIG = {
+  BASE_URL: import.meta.env.VITE_OMDB_BASE_URL,
+  API_KEY: import.meta.env.VITE_OMDB_API_KEY,
+  SEARCH: import.meta.env.VITE_OMDB_SEARCH_PATH,
+  DETAILS: import.meta.env.VITE_OMDB_DETAILS_PATH,
+  TYPES: {
+    MOVIE: import.meta.env.VITE_OMDB_TYPE_MOVIE,
+    SERIES: import.meta.env.VITE_OMDB_TYPE_SERIES,
+    EPISODE: import.meta.env.VITE_OMDB_TYPE_EPISODE,
+  },
+  PLOT: {
+    SHORT: import.meta.env.VITE_OMDB_PLOT_SHORT,
+    FULL: import.meta.env.VITE_OMDB_PLOT_FULL,
+  },
+  RESPONSE_TYPE: import.meta.env.VITE_OMDB_RESPONSE_TYPE,
+  API_VERSION: import.meta.env.VITE_OMDB_API_VERSION,
 };
