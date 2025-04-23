@@ -6,6 +6,7 @@ import MovieSection from './movies/MovieSection';
 import MovieDetailsModal from './movies/MovieDetailsModal';
 import ExploreSuggestions from './movies/ExploreSuggestions';
 import SearchResults from './movies/SearchResults';
+import AIRecommendations from './movies/AIRecommendations';
 import { APP_CONFIG } from '../utils/constants';
 import { omdbService } from '../services/omdbService';
 import { useMovieSearch } from '../hooks/useMovieSearch';
@@ -125,16 +126,18 @@ const Browse = () => {
                         searchResults={searchResults}
                         searchLoading={searchLoading}
                         searchError={searchError}
-                                    currentPage={currentPage}
-                                    totalPages={totalPages}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
                         contentType={contentType}
                         onBack={resetSearch}
                         onMovieSelect={handleMovieSelect}
-                                    onPageChange={handlePageChange}
+                        onPageChange={handlePageChange}
                         onTypeChange={handleTypeChange}
                     />
                 ) : (
                     <>
+                        <AIRecommendations onMovieSelect={handleMovieSelect} />
+
                         <MovieSection
                             title="Trending Now"
                             movies={trendingContent}
