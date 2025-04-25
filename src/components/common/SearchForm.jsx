@@ -60,11 +60,11 @@ const SearchForm = ({ onSearch }) => {
     };
 
     return (
-        <div className="mb-8 relative">
-            <div className="max-w-3xl mx-auto">
+        <div className="mb-4 sm:mb-8 relative">
+            <div className="max-w-3xl mx-auto px-2 sm:px-4">
                 <form onSubmit={handleSubmit}>
                     <div className="relative shadow-lg">
-                        <div className="flex">
+                        <div className="flex flex-col sm:flex-row">
                             <div className="relative flex-grow">
                                 <input
                                     ref={inputRef}
@@ -72,24 +72,24 @@ const SearchForm = ({ onSearch }) => {
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search for movies, shows, directors..."
-                                    className="w-full px-5 py-4 pr-12 rounded-l-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 transition-shadow text-lg"
+                                    className="w-full px-3 sm:px-5 py-3 sm:py-4 pr-10 sm:pr-12 rounded-lg sm:rounded-l-lg sm:rounded-r-none bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 transition-shadow text-sm sm:text-lg"
                                     disabled={isLoading}
                                     onFocus={handleFocus}
                                 />
                                 {searchQuery && (
                                     <button
                                         type="button"
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                                        className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                                         onClick={handleClearSearch}
                                         aria-label="Clear search"
                                     >
-                                        <FaTimes className="w-5 h-5" />
+                                        <FaTimes className="w-4 h-4 sm:w-5 sm:h-5" />
                                     </button>
                                 )}
                             </div>
                             <button
                                 type="submit"
-                                className={`px-6 py-4 bg-red-600 text-white rounded-r-lg flex items-center justify-center min-w-[120px] transition-all ${
+                                className={`mt-2 sm:mt-0 px-4 sm:px-6 py-3 sm:py-4 bg-red-600 text-white rounded-lg sm:rounded-l-none sm:rounded-r-lg flex items-center justify-center min-w-[100px] sm:min-w-[120px] transition-all ${
                                     isLoading 
                                         ? 'opacity-75 cursor-not-allowed' 
                                         : 'hover:bg-red-700 hover:shadow-red-600/30 hover:shadow-lg'
@@ -97,11 +97,11 @@ const SearchForm = ({ onSearch }) => {
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
-                                    <FaSpinner className="animate-spin h-5 w-5" />
+                                    <FaSpinner className="animate-spin h-4 w-4 sm:h-5 sm:w-5" />
                                 ) : (
                                     <>
-                                        <FaSearch className="w-5 h-5 mr-2" />
-                                        Search
+                                        <FaSearch className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                                        <span className="text-sm sm:text-base">Search</span>
                                     </>
                                 )}
                             </button>
@@ -112,17 +112,17 @@ const SearchForm = ({ onSearch }) => {
                                 ref={suggestionsRef}
                                 className="absolute z-10 mt-1 w-full bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-2 transform transition-all origin-top"
                             >
-                                <div className="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider font-medium border-b border-gray-700">Popular searches</div>
-                                <div className="max-h-60 overflow-y-auto py-1">
+                                <div className="px-3 sm:px-4 py-2 text-xs text-gray-400 uppercase tracking-wider font-medium border-b border-gray-700">Popular searches</div>
+                                <div className="max-h-48 sm:max-h-60 overflow-y-auto py-1">
                                     {POPULAR_SEARCHES.map((suggestion, index) => (
                                         <button
                                             key={index}
                                             type="button"
-                                            className="w-full text-left px-4 py-3 text-white hover:bg-gray-700 focus:outline-none focus:bg-gray-700 transition-colors flex items-center group"
+                                            className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white hover:bg-gray-700 focus:outline-none focus:bg-gray-700 transition-colors flex items-center group"
                                             onClick={() => handleSuggestionClick(suggestion)}
                                         >
                                             <span className="mr-2 text-gray-400 group-hover:text-red-400">
-                                                <FaSearch className="w-4 h-4" />
+                                                <FaSearch className="w-3 h-3 sm:w-4 sm:h-4" />
                                             </span>
                                             {suggestion}
                                         </button>
@@ -133,12 +133,12 @@ const SearchForm = ({ onSearch }) => {
                     </div>
                 </form>
                 
-                <div className="flex flex-wrap gap-2 mt-4 justify-center">
+                <div className="flex flex-wrap gap-2 mt-3 sm:mt-4 justify-center">
                     {POPULAR_SEARCHES.slice(0, 5).map((tag, index) => (
                         <button
                             key={index}
                             type="button"
-                            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-sm text-white rounded-full transition-all hover:scale-105"
+                            className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-800 hover:bg-gray-700 text-xs sm:text-sm text-white rounded-full transition-all hover:scale-105"
                             onClick={() => handleSuggestionClick(tag)}
                         >
                             {tag}

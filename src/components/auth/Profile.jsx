@@ -20,10 +20,10 @@ const Profile = () => {
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-        setFormData(prev => ({
-            ...prev,
+                setFormData(prev => ({
+                    ...prev,
                     photoURL: reader.result
-            }));
+                }));
             };
             reader.readAsDataURL(file);
         }
@@ -32,11 +32,11 @@ const Profile = () => {
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
         try {
-                await updateProfile(auth.currentUser, {
+            await updateProfile(auth.currentUser, {
                 displayName: formData.name,
                 photoURL: formData.photoURL
             });
-                        await updateEmail(auth.currentUser, formData.email);
+            await updateEmail(auth.currentUser, formData.email);
             setIsEditing(false);
             toast.success('Profile updated successfully!');
         } catch (error) {
@@ -47,29 +47,29 @@ const Profile = () => {
 
     const handleCancel = () => {
         setIsEditing(false);
-            setFormData({
+        setFormData({
             name: user?.displayName || '',
-                email: user?.email || '',
+            email: user?.email || '',
             photoURL: user?.photoURL || USER_AVATAR
-            });
+        });
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-bold mb-8">Profile</h1>
-            <div className="bg-white rounded-lg shadow-lg p-6">
-                <div className="flex flex-col md:flex-row gap-8">
+        <div className="max-w-4xl mx-auto px-2 sm:px-4 md:px-6 py-4 sm:py-6">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-8">Profile</h1>
+            <div className="bg-white rounded-lg shadow-lg p-3 sm:p-6">
+                <div className="flex flex-col md:flex-row gap-4 sm:gap-8">
                     <div className="flex flex-col items-center">
                         <div className="relative group">
-                                <img 
+                            <img
                                 src={formData.photoURL}
-                                    alt="Profile" 
-                                className="w-32 h-32 rounded-full object-cover"
-                                />
+                                alt="Profile"
+                                className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover"
+                            />
                             {isEditing && (
                                 <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                     <label className="cursor-pointer">
-                                        <FaCamera className="text-white text-2xl" />
+                                        <FaCamera className="text-white text-xl sm:text-2xl" />
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -80,51 +80,51 @@ const Profile = () => {
                                 </div>
                             )}
                         </div>
-                        <h2 className="text-xl font-semibold mt-4">{formData.name}</h2>
-                        <p className="text-gray-600">{formData.email}</p>
+                        <h2 className="text-lg sm:text-xl font-semibold mt-3 sm:mt-4">{formData.name}</h2>
+                        <p className="text-sm sm:text-base text-gray-600">{formData.email}</p>
                     </div>
-                    <div className="flex-1">
-                        <form onSubmit={handleUpdateProfile} className="space-y-4">
-                                            <FormInput
+                    <div className="flex-1 mt-4 sm:mt-0">
+                        <form onSubmit={handleUpdateProfile} className="space-y-3 sm:space-y-4">
+                            <FormInput
                                 label="Name"
-                                                type="text"
+                                type="text"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 disabled={!isEditing}
-                                            />
-                                            <FormInput
-                                                label="Email"
-                                                type="email"
-                                                value={formData.email}
+                            />
+                            <FormInput
+                                label="Email"
+                                type="email"
+                                value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 disabled={!isEditing}
-                                                />
-                            <div className="flex gap-4 mt-6">
+                            />
+                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4 sm:mt-6">
                                 {!isEditing ? (
-                                                <button
-                                                    type="button"
+                                    <button
+                                        type="button"
                                         onClick={() => setIsEditing(true)}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                                        className="w-full sm:w-auto bg-blue-600 text-white px-3 sm:px-4 py-2 rounded hover:bg-blue-700 text-sm sm:text-base"
                                     >
                                         Edit Profile
-                                                </button>
+                                    </button>
                                 ) : (
                                     <>
-                                                    <button
-                                                        type="submit"
-                                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                                        <button
+                                            type="submit"
+                                            className="w-full sm:w-auto bg-blue-600 text-white px-3 sm:px-4 py-2 rounded hover:bg-blue-700 text-sm sm:text-base"
                                         >
-                                                                Save Changes
-                                                    </button>
-                                                <button
-                                                    type="button"
+                                            Save Changes
+                                        </button>
+                                        <button
+                                            type="button"
                                             onClick={handleCancel}
-                                            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-                                                >
-                                                    Cancel
-                                                </button>
-                                                            </>
-                                                        )}
+                                            className="w-full sm:w-auto bg-gray-600 text-white px-3 sm:px-4 py-2 rounded hover:bg-gray-700 text-sm sm:text-base"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </form>
                     </div>

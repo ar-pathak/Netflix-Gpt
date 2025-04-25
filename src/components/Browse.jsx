@@ -96,23 +96,23 @@ const Browse = () => {
             <Header />
             <main className="container mx-auto px-4 py-6 pt-[100px]">
                 {!searchQuery && (
-                    <div className="relative rounded-xl overflow-hidden mb-12">
+                    <div className="relative rounded-xl overflow-hidden mb-8 sm:mb-12">
                         {/* Hero banner */}
-                        <div className="relative h-80 md:h-96 w-full">
+                        <div className="relative h-64 sm:h-80 md:h-96 w-full">
                             <div className="absolute inset-0 bg-gradient-to-r from-black via-gray-900/80 to-transparent z-10"></div>
                             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
 
-                            <div className="absolute inset-0 z-20 flex flex-col justify-center p-8 md:max-w-2xl">
-                                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
+                            <div className="absolute inset-0 z-20 flex flex-col justify-center p-4 sm:p-6 md:p-8 md:max-w-2xl">
+                                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-lg">
                                     {APP_CONFIG.NAME}
                                 </h1>
-                                <p className="text-xl text-gray-200 mb-6 drop-shadow-md">
+                                <p className="text-lg sm:text-xl text-gray-200 mb-4 sm:mb-6 drop-shadow-md">
                                     {APP_CONFIG.DESCRIPTION}
                                 </p>
                                 <div className="w-full md:w-3/4">
                                     <SearchForm onSearch={handleSearch} />
                                 </div>
-                                <div className="mt-4 text-sm text-gray-300">
+                                <div className="mt-2 sm:mt-4 text-xs sm:text-sm text-gray-300">
                                     Try searching for "top rated" to see the best movies of all time
                                 </div>
                             </div>
