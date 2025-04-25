@@ -129,48 +129,48 @@ const Header = () => {
                         </button>
                         
                         <AnimatePresence>
-                            {dropdownOpen && (
+                        {dropdownOpen && (
                                 <motion.div
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
                                     className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-800 rounded-lg shadow-xl z-10 overflow-hidden"
                                 >
-                                    <div className="p-3 border-b border-gray-800 bg-gradient-to-r from-gray-900 to-gray-800">
-                                        <div className="font-medium text-white">{user.displayName || 'User'}</div>
-                                        <div className="text-xs text-gray-400 truncate">{user.email}</div>
-                                    </div>
-                                    
-                                    <div className="py-1">
-                                        <Link
-                                            to={ROUTES.PROFILE}
-                                            className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
-                                            onClick={() => setDropdownOpen(false)}
-                                        >
-                                            <FaUserCircle className="mr-2" /> Profile
-                                        </Link>
-                                        <Link
-                                            to={ROUTES.SETTINGS}
-                                            className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
-                                            onClick={() => setDropdownOpen(false)}
-                                        >
-                                            <FaCog className="mr-2" /> Settings
-                                        </Link>
-                                    </div>
-                                    
-                                    <div className="border-t border-gray-800">
-                                        <button
-                                            onClick={() => {
-                                                handleSignOut();
-                                                setDropdownOpen(false);
-                                            }}
-                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
-                                        >
-                                            <FaSignOutAlt className="mr-2" /> Sign Out
-                                        </button>
-                                    </div>
+                                <div className="p-3 border-b border-gray-800 bg-gradient-to-r from-gray-900 to-gray-800">
+                                    <div className="font-medium text-white">{user.displayName || 'User'}</div>
+                                    <div className="text-xs text-gray-400 truncate">{user.email}</div>
+                                </div>
+                                
+                                <div className="py-1">
+                                    <Link
+                                        to={ROUTES.PROFILE}
+                                        className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
+                                        onClick={() => setDropdownOpen(false)}
+                                    >
+                                        <FaUserCircle className="mr-2" /> Profile
+                                    </Link>
+                                    <Link
+                                        to={ROUTES.SETTINGS}
+                                        className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
+                                        onClick={() => setDropdownOpen(false)}
+                                    >
+                                        <FaCog className="mr-2" /> Settings
+                                    </Link>
+                                </div>
+                                
+                                <div className="border-t border-gray-800">
+                                    <button
+                                        onClick={() => {
+                                            handleSignOut();
+                                            setDropdownOpen(false);
+                                        }}
+                                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
+                                    >
+                                        <FaSignOutAlt className="mr-2" /> Sign Out
+                                    </button>
+                                </div>
                                 </motion.div>
-                            )}
+                        )}
                         </AnimatePresence>
                     </div>
                 </div>

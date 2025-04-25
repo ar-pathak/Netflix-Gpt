@@ -7,24 +7,24 @@ import { useSearchHistory } from '../../hooks/useSearchHistory';
 
 // Constants
 const INITIAL_MESSAGE = {
-    role: 'assistant',
-    content: 'Hi! I\'m your AI movie assistant. I can help you discover movies based on your preferences. What kind of movies are you looking for?'
+            role: 'assistant',
+            content: 'Hi! I\'m your AI movie assistant. I can help you discover movies based on your preferences. What kind of movies are you looking for?'
 };
 
 const DEFAULT_FILTERS = {
-    type: 'movie',
-    year: '',
-    rating: '',
-    genre: ''
+        type: 'movie',
+        year: '',
+        rating: '',
+        genre: ''
 };
 
 const SUGGESTIONS = [
-    "Recommend action movies from the 90s",
-    "What are the best sci-fi movies of all time?",
-    "I like The Matrix, what else should I watch?",
-    "Show me some romantic comedies",
-    "Find movies similar to Inception",
-    "What are the highest rated movies this year?"
+        "Recommend action movies from the 90s",
+        "What are the best sci-fi movies of all time?",
+        "I like The Matrix, what else should I watch?",
+        "Show me some romantic comedies",
+        "Find movies similar to Inception",
+        "What are the highest rated movies this year?"
 ];
 
 const AIRecommendations = ({ onMovieSelect }) => {
@@ -109,10 +109,10 @@ const AIRecommendations = ({ onMovieSelect }) => {
 
             const franchiseTerms = getFranchiseSearchTerms(input);
             const searchTerms = franchiseTerms || [
-                input,
-                parsedQuery.genre ? parsedQuery.genre : 'movie',
-                'popular'
-            ];
+                    input,
+                    parsedQuery.genre ? parsedQuery.genre : 'movie',
+                    'popular'
+                ];
 
             const searchPromises = searchTerms.map(term => 
                 omdbService.searchMovies(term, searchParams)
@@ -215,134 +215,134 @@ const AIRecommendations = ({ onMovieSelect }) => {
             <AnimatePresence>
                 {!isCollapsed && (
                     <div className="transition-all duration-300 ease-in-out">
-                        {showFilters && (
+            {showFilters && (
                             <div className="p-4 border-b border-gray-700">
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <select
-                                        value={filters.type}
-                                        onChange={(e) => handleFilterChange('type', e.target.value)}
-                                        className="bg-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value="movie">Movie</option>
-                                        <option value="series">TV Series</option>
-                                        <option value="episode">Episode</option>
-                                    </select>
-                                    <input
-                                        type="text"
-                                        value={filters.year}
-                                        onChange={(e) => handleFilterChange('year', e.target.value)}
-                                        placeholder="Year"
-                                        className="bg-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={filters.rating}
-                                        onChange={(e) => handleFilterChange('rating', e.target.value)}
-                                        placeholder="Min Rating"
-                                        className="bg-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={filters.genre}
-                                        onChange={(e) => handleFilterChange('genre', e.target.value)}
-                                        placeholder="Genre"
-                                        className="bg-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <select
+                            value={filters.type}
+                            onChange={(e) => handleFilterChange('type', e.target.value)}
+                            className="bg-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="movie">Movie</option>
+                            <option value="series">TV Series</option>
+                            <option value="episode">Episode</option>
+                        </select>
+                        <input
+                            type="text"
+                            value={filters.year}
+                            onChange={(e) => handleFilterChange('year', e.target.value)}
+                            placeholder="Year"
+                            className="bg-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                            type="text"
+                            value={filters.rating}
+                            onChange={(e) => handleFilterChange('rating', e.target.value)}
+                            placeholder="Min Rating"
+                            className="bg-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                            type="text"
+                            value={filters.genre}
+                            onChange={(e) => handleFilterChange('genre', e.target.value)}
+                            placeholder="Genre"
+                            className="bg-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
                             </div>
-                        )}
+            )}
 
-                        <div className="h-[400px] overflow-y-auto p-4 space-y-4">
-                            {messages.map((message, index) => (
+            <div className="h-[400px] overflow-y-auto p-4 space-y-4">
+                {messages.map((message, index) => (
                                 <div
-                                    key={index}
-                                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                >
-                                    <div
-                                        className={`max-w-[80%] rounded-lg p-3 ${
-                                            message.role === 'user'
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-700 text-gray-200'
-                                        }`}
-                                    >
-                                        {message.content}
-                                    </div>
-                                </div>
-                            ))}
-
-                            {recommendations.length > 0 && (
-                                <div className="space-y-4">
-                                    <div className="flex space-x-4 overflow-x-auto pb-4">
-                                        {recommendations.map((movie) => (
-                                            <div
-                                                key={movie.imdbID}
-                                                className="flex-shrink-0 w-48 cursor-pointer transform transition-transform hover:scale-105"
-                                                onClick={() => onMovieSelect(movie)}
-                                            >
-                                                <div className="relative">
-                                                    <img
-                                                        src={movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/300x450?text=No+Poster'}
-                                                        alt={movie.Title}
-                                                        className="w-full h-72 object-cover rounded-lg"
-                                                    />
-                                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2">
-                                                        <h3 className="text-white text-sm font-semibold truncate">{movie.Title}</h3>
-                                                        <p className="text-gray-300 text-xs">{movie.Year}</p>
-                                                        {movie.imdbRating && (
-                                                            <p className="text-yellow-400 text-xs">⭐ {movie.imdbRating}</p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {isLoading && (
-                                <div className="flex justify-start">
-                                    <div className="bg-gray-700 rounded-lg p-3 text-gray-200">
-                                        <FiLoader className="animate-spin inline-block mr-2" />
-                                        Thinking...
-                                    </div>
-                                </div>
-                            )}
-
-                            <div ref={messagesEndRef} />
+                        key={index}
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                        <div
+                            className={`max-w-[80%] rounded-lg p-3 ${
+                                message.role === 'user'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-700 text-gray-200'
+                            }`}
+                        >
+                            {message.content}
                         </div>
+                                </div>
+                ))}
 
-                        <div className="p-4 border-t border-gray-700">
-                            <div className="mb-4">
-                                <div className="flex flex-wrap gap-2">
+                {recommendations.length > 0 && (
+                                <div className="space-y-4">
+                        <div className="flex space-x-4 overflow-x-auto pb-4">
+                            {recommendations.map((movie) => (
+                                            <div
+                                    key={movie.imdbID}
+                                                className="flex-shrink-0 w-48 cursor-pointer transform transition-transform hover:scale-105"
+                                    onClick={() => onMovieSelect(movie)}
+                                >
+                                    <div className="relative">
+                                        <img
+                                            src={movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/300x450?text=No+Poster'}
+                                            alt={movie.Title}
+                                            className="w-full h-72 object-cover rounded-lg"
+                                        />
+                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2">
+                                            <h3 className="text-white text-sm font-semibold truncate">{movie.Title}</h3>
+                                            <p className="text-gray-300 text-xs">{movie.Year}</p>
+                                            {movie.imdbRating && (
+                                                <p className="text-yellow-400 text-xs">⭐ {movie.imdbRating}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                            </div>
+                            ))}
+                        </div>
+                                </div>
+                )}
+
+                {isLoading && (
+                                <div className="flex justify-start">
+                        <div className="bg-gray-700 rounded-lg p-3 text-gray-200">
+                            <FiLoader className="animate-spin inline-block mr-2" />
+                            Thinking...
+                        </div>
+                                </div>
+                )}
+
+                <div ref={messagesEndRef} />
+            </div>
+
+            <div className="p-4 border-t border-gray-700">
+                <div className="mb-4">
+                    <div className="flex flex-wrap gap-2">
                                     {filteredSuggestions.map((suggestion, index) => (
                                         <button
-                                            key={index}
-                                            onClick={() => handleSuggestionClick(suggestion)}
-                                            className="text-sm bg-gray-700 text-gray-200 px-3 py-1 rounded-full hover:bg-gray-600 transition-colors"
-                                        >
-                                            {suggestion}
+                                key={index}
+                                onClick={() => handleSuggestionClick(suggestion)}
+                                className="text-sm bg-gray-700 text-gray-200 px-3 py-1 rounded-full hover:bg-gray-600 transition-colors"
+                            >
+                                {suggestion}
                                         </button>
-                                    ))}
-                                </div>
-                            </div>
+                        ))}
+                    </div>
+                </div>
 
-                            <form onSubmit={handleSubmit} className="flex space-x-2">
-                                <input
-                                    type="text"
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    placeholder="Ask for movie recommendations..."
-                                    className="flex-1 bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={isLoading || !input.trim()}
-                                    className="bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <FiSend className="inline-block" />
-                                </button>
-                            </form>
-                        </div>
+                <form onSubmit={handleSubmit} className="flex space-x-2">
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Ask for movie recommendations..."
+                        className="flex-1 bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                        type="submit"
+                        disabled={isLoading || !input.trim()}
+                        className="bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <FiSend className="inline-block" />
+                    </button>
+                </form>
+            </div>
                     </div>
                 )}
             </AnimatePresence>

@@ -44,11 +44,12 @@ export const IMG_CDN = {
 export const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
+  SIGN_UP: "/signup",
   BROWSE: "/browse",
   PROFILE: "/profile",
-  HELP: "/login/help",
-  SIGN_UP: "/signup",
-  SEARCH: "/search",
+  SETTINGS: "/settings",
+  HELP: "/help",
+  SEARCH: "/search"
 };
 
 export const SUPPORTED_LANGUAGES = {

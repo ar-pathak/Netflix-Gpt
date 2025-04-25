@@ -5,6 +5,7 @@ import { ROUTES } from "./utils/constants";
 import Login from "./components/auth/Login";
 import Browse from "./components/Browse";
 import Profile from "./components/auth/Profile";
+import Settings from "./components/auth/Settings";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import { useContext } from "react";
 import UserContext from "./context/UserContext";
@@ -95,6 +96,14 @@ const App = () => {
                             element={
                                 <ProtectedRoute>
                                     <Profile />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path={ROUTES.SETTINGS}
+                            element={
+                                <ProtectedRoute>
+                                    <Settings />
                                 </ProtectedRoute>
                             }
                         />
