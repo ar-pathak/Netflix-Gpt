@@ -16,7 +16,7 @@ export const API_ENDPOINTS = {
   },
   OMDB: {
     BASE_URL: "https://www.omdbapi.com",
-    API_KEY: "9075a0dc",
+    API_KEY: import.meta.env.VITE_OMDB_API_KEY,
     SEARCH: "/?s=",
     DETAILS: "/?i=",
   },
@@ -30,9 +30,10 @@ export const API_OPTIONS = {
   method: "GET",
   headers: {
     accept: "application/json",
-    Authorization: "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5Zjk2NjYzMWUxNTIzYzE4MWVlYjg2YWNkNzZiMzJkNiIsInN1YiI6IjY0Y2EwZGJhYmYwMDEwMTAxZjE4OTZiIiwic2NvcGVzIjpbImFwaSJdLCJ2ZXJzaW9uIjoxfQ.Y3RpHbTXBaxBgtKNokY1bssYf3BVYM746QHHmRFwjW8",
+    Authorization: `Bearer ${import.meta.env.VITE_TMDB_ACCESS_TOKEN}`,
   },
 };
+
 export const IMG_CDN = {
   TMDB: {
     ORIGINAL: "https://image.tmdb.org/t/p/original",

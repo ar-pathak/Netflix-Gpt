@@ -11,15 +11,6 @@ const MovieSection = ({ title, movies, isLoading, error, onMovieSelect, setSelec
     // The rest of the movies
     const remainingMovies = movies && movies.length > 5 ? movies.slice(5) : [];
 
-    console.log('MovieSection:', {
-        title,
-        totalMovies: movies?.length,
-        featuredMoviesCount: featuredMovies.length,
-        featuredMovies,
-        isLoading,
-        error
-    });
-
     const renderFeaturedMovie = (movie) => {
         return (
             <div className="overflow-hidden rounded-xl bg-gradient-to-br from-gray-900 via-gray-800 to-black border border-gray-800 shadow-2xl h-full group">

@@ -1,80 +1,100 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { FiSend, FiLoader, FiSearch, FiFilter, FiX, FiRefreshCw, FiHelpCircle } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { omdbService } from '../../services/omdbService';
+import { useDebounce } from '../../hooks/useDebounce';
+import { useSearchHistory } from '../../hooks/useSearchHistory';
+
+// Constants
+const INITIAL_MESSAGE = {
+    role: 'assistant',
+    content: 'Hi! I\'m your AI movie assistant. I can help you discover movies based on your preferences. What kind of movies are you looking for?'
+};
+
+const DEFAULT_FILTERS = {
+    type: 'movie',
+    year: '',
+    rating: '',
+    genre: ''
+};
+
+const SUGGESTIONS = [
+    "Recommend action movies from the 90s",
+    "What are the best sci-fi movies of all time?",
+    "I like The Matrix, what else should I watch?",
+    "Show me some romantic comedies",
+    "Find movies similar to Inception",
+    "What are the highest rated movies this year?"
+];
 
 const AIRecommendations = ({ onMovieSelect }) => {
-    const [messages, setMessages] = useState([
-        {
-            role: 'assistant',
-            content: 'Hi! I\'m your AI movie assistant. I can help you discover movies based on your preferences. What kind of movies are you looking for?'
-        }
-    ]);
+    const [messages, setMessages] = useState([INITIAL_MESSAGE]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [recommendations, setRecommendations] = useState([]);
-    const [searchHistory, setSearchHistory] = useState([]);
-    const [filters, setFilters] = useState({
-        type: 'movie',
-        year: '',
-        rating: '',
-        genre: ''
-    });
+    const [filters, setFilters] = useState(DEFAULT_FILTERS);
     const [showFilters, setShowFilters] = useState(false);
-    const [suggestions] = useState([
-        "Recommend action movies from the 90s",
-        "What are the best sci-fi movies of all time?",
-        "I like The Matrix, what else should I watch?",
-        "Show me some romantic comedies",
-        "Find movies similar to Inception",
-        "What are the highest rated movies this year?"
-    ]);
     const messagesEndRef = useRef(null);
+    const { addToHistory } = useSearchHistory();
+    const debouncedInput = useDebounce(input, 300);
 
-    const scrollToBottom = () => {
+    const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+    }, []);
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [messages, scrollToBottom]);
 
-    const parseQuery = (query) => {
-        // Extract year if present
+    const parseQuery = useCallback((query) => {
         const yearMatch = query.match(/\b(19\d{2}|20\d{2})\b/);
         const year = yearMatch ? yearMatch[0] : '';
 
-        // Extract genre if present
         const genres = ['action', 'sci-fi', 'drama', 'comedy', 'horror', 'romance', 'thriller', 'adventure'];
         const genreMatch = genres.find(genre => query.toLowerCase().includes(genre));
         const genre = genreMatch || '';
 
-        // Extract rating if present
         const ratingMatch = query.match(/\b(high|top|best)\b/i);
         const rating = ratingMatch ? '8.0' : '';
 
-        // Extract type if present
         const typeMatch = query.match(/\b(movie|series|show)\b/i);
         const type = typeMatch ? (typeMatch[0] === 'series' || typeMatch[0] === 'show' ? 'series' : 'movie') : 'movie';
 
         return { year, genre, rating, type };
-    };
+    }, []);
 
-    const handleSubmit = async (e) => {
+    const getFranchiseSearchTerms = useCallback((query) => {
+        const franchiseMap = {
+            'marvel': ['marvel', 'mcu', 'avengers', 'iron man', 'captain america', 'thor', 'black panther'],
+            'star wars': ['star wars', 'starwars', 'jedi', 'sith', 'skywalker'],
+            'harry potter': ['harry potter', 'hogwarts', 'wizarding world'],
+            'lord of the rings': ['lord of the rings', 'middle earth', 'hobbit'],
+            'dc': ['dc', 'batman', 'superman', 'wonder woman', 'justice league'],
+            'pixar': ['pixar', 'toy story', 'finding nemo', 'monsters inc'],
+            'disney': ['disney', 'frozen', 'lion king', 'aladdin', 'beauty and the beast']
+        };
+
+        const lowerQuery = query.toLowerCase();
+        for (const [, terms] of Object.entries(franchiseMap)) {
+            if (terms.some(term => lowerQuery.includes(term))) {
+                return terms;
+            }
+        }
+        return null;
+    }, []);
+
+    const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
 
         const userMessage = { role: 'user', content: input };
         setMessages(prev => [...prev, userMessage]);
-        setSearchHistory(prev => [...prev, input]);
+        addToHistory(input);
         setInput('');
         setIsLoading(true);
 
         try {
-            // Parse the query for better search results
             const parsedQuery = parseQuery(input);
-            
-            // Enhanced search with parsed parameters
             const searchParams = {
                 type: parsedQuery.type || filters.type,
                 year: parsedQuery.year || filters.year,
@@ -82,18 +102,12 @@ const AIRecommendations = ({ onMovieSelect }) => {
                 genre: parsedQuery.genre || filters.genre
             };
 
-            // If it's a "best of" query, search with high rating
             if (input.toLowerCase().includes('best') || input.toLowerCase().includes('top')) {
                 searchParams.rating = '8.0';
             }
 
-            // If it's a genre-specific query, use that genre
-            if (parsedQuery.genre) {
-                searchParams.genre = parsedQuery.genre;
-            }
-
-            // Perform multiple searches for better results
-            const searchTerms = [
+            const franchiseTerms = getFranchiseSearchTerms(input);
+            const searchTerms = franchiseTerms || [
                 input,
                 parsedQuery.genre ? parsedQuery.genre : 'movie',
                 'popular'
@@ -105,7 +119,6 @@ const AIRecommendations = ({ onMovieSelect }) => {
 
             const results = await Promise.all(searchPromises);
             
-            // Combine and deduplicate results
             const allResults = results
                 .filter(result => result.success)
                 .flatMap(result => result.data)
@@ -125,7 +138,6 @@ const AIRecommendations = ({ onMovieSelect }) => {
                     content: `Here are some ${parsedQuery.type || 'movies'} based on your request:`
                 }]);
             } else {
-                // Fallback to popular movies if no results found
                 const popularResult = await omdbService.searchMovies('popular', { type: 'movie' });
                 if (popularResult.success) {
                     setRecommendations(popularResult.data.slice(0, 5));
@@ -149,24 +161,26 @@ const AIRecommendations = ({ onMovieSelect }) => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [input, isLoading, filters, parseQuery, getFranchiseSearchTerms, addToHistory]);
 
-    const handleFilterChange = (key, value) => {
+    const handleFilterChange = useCallback((key, value) => {
         setFilters(prev => ({ ...prev, [key]: value }));
-    };
+    }, []);
 
-    const clearFilters = () => {
-        setFilters({
-            type: 'movie',
-            year: '',
-            rating: '',
-            genre: ''
-        });
-    };
+    const clearFilters = useCallback(() => {
+        setFilters(DEFAULT_FILTERS);
+    }, []);
 
-    const handleSuggestionClick = (suggestion) => {
+    const handleSuggestionClick = useCallback((suggestion) => {
         setInput(suggestion);
-    };
+    }, []);
+
+    const filteredSuggestions = useMemo(() => {
+        if (!debouncedInput) return SUGGESTIONS;
+        return SUGGESTIONS.filter(suggestion => 
+            suggestion.toLowerCase().includes(debouncedInput.toLowerCase())
+        );
+    }, [debouncedInput]);
 
     return (
         <motion.div 
@@ -308,7 +322,7 @@ const AIRecommendations = ({ onMovieSelect }) => {
             <div className="p-4 border-t border-gray-700">
                 <div className="mb-4">
                     <div className="flex flex-wrap gap-2">
-                        {suggestions.map((suggestion, index) => (
+                        {filteredSuggestions.map((suggestion, index) => (
                             <motion.button
                                 key={index}
                                 whileHover={{ scale: 1.02 }}

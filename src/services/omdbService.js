@@ -34,10 +34,7 @@ export const omdbService = {
             }
             
             const url = buildUrl(OMDB_CONFIG.SEARCH + encodeURIComponent(query.trim()), params);
-            console.log('Fetching from URL:', url);
-            
             const data = await makeApiRequest(url);
-            console.log('API Response:', data);
             
             const validation = validateApiResponse(data, 'search');
             if (!validation.success) return validation;
@@ -79,10 +76,7 @@ export const omdbService = {
             };
 
             const url = buildUrl(OMDB_CONFIG.DETAILS + imdbId.trim(), params);
-            console.log('Fetching details from URL:', url);
-            
             const data = await makeApiRequest(url);
-            console.log('API Details Response:', data);
             
             return validateApiResponse(data, 'movie details');
         } catch (err) {
