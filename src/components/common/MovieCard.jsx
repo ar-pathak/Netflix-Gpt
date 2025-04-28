@@ -1,10 +1,22 @@
-import React from 'react';
-import { FaStar, FaPlay, FaClock, FaFilm } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaStar, FaPlay, FaClock, FaFilm, FaImage } from 'react-icons/fa';
 
 const MovieCard = ({ movie, onClick }) => {
+    const [imageError, setImageError] = useState(false);
+    const [imageLoading, setImageLoading] = useState(true);
+
     const handleClick = (e) => {
         e.preventDefault();
         onClick(movie);
+    };
+
+    const handleImageError = () => {
+        setImageError(true);
+        setImageLoading(false);
+    };
+
+    const handleImageLoad = () => {
+        setImageLoading(false);
     };
 
     return (
@@ -14,15 +26,26 @@ const MovieCard = ({ movie, onClick }) => {
         >
             {/* Poster Image */}
             <div className="aspect-[2/3] relative">
-                {movie.Poster && movie.Poster !== 'N/A' ? (
+                {imageLoading && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
+                        <div className="animate-pulse flex flex-col items-center">
+                            <FaImage className="text-gray-500 text-2xl mb-2" />
+                            <div className="h-2 w-16 bg-gray-600 rounded"></div>
+                        </div>
+                    </div>
+                )}
+                {movie.Poster && movie.Poster !== 'N/A' && !imageError ? (
                     <img
                         src={movie.Poster}
                         alt={movie.Title}
-                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                        className={`w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                        onError={handleImageError}
+                        onLoad={handleImageLoad}
                     />
                 ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
-                        <span className="text-gray-500 text-sm">No image</span>
+                    <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex flex-col items-center justify-center p-4">
+                        <FaImage className="text-gray-500 text-4xl mb-2" />
+                        <span className="text-gray-500 text-sm text-center">No image available</span>
                     </div>
                 )}
             </div>

@@ -136,11 +136,30 @@ const MovieSection = ({ title, movies, isLoading, error, onMovieSelect, setSelec
                     <FaSpinner className="animate-spin text-red-600 text-4xl" />
                 </div>
             ) : error ? (
-                <div className="text-center p-8 bg-gray-800/50 rounded-xl backdrop-blur-sm">
-                    <p className="text-red-500 mb-2">{error}</p>
-                    <p className="text-gray-400">Please try again or explore other sections.</p>
+                <div className="text-center p-8 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl backdrop-blur-sm border border-gray-700/30">
+                    <div className="max-w-md mx-auto">
+                        <div className="mb-4 text-red-500">
+                            <FaInfoCircle className="text-4xl mx-auto" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-white mb-2">Content Not Available</h3>
+                        <p className="text-gray-400 mb-4">{error}</p>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+                            >
+                                <FaSpinner className="animate-spin" /> Try Again
+                            </button>
+                            <button
+                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+                            >
+                                <FaPlay /> Explore Other Sections
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            ) : featuredMovies.length > 0 ? (
+            ) : movies && movies.length > 0 ? (
                 <>
                     {/* Featured Movies Carousel */}
                     <div className="mb-8">

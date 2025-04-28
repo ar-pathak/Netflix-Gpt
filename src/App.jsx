@@ -7,7 +7,7 @@ import Browse from "./components/Browse";
 import Profile from "./components/auth/Profile";
 import Settings from "./components/auth/Settings";
 import ProtectedRoute from "./components/common/ProtectedRoute";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import UserContext from "./context/UserContext";
 import { useToast } from "./context/ToastContext";
 import LogInHelp from './components/auth/LogInHelp';
@@ -16,6 +16,12 @@ import LogInHelp from './components/auth/LogInHelp';
 const PublicRoute = ({ children }) => {
     const { user, loading } = useContext(UserContext);
     const { showToast } = useToast();
+
+    useEffect(() => {
+        if (!loading && user) {
+            showToast("You are already logged in", "info");
+        }
+    }, [user, loading, showToast]);
 
     if (loading) {
         return (
@@ -27,7 +33,6 @@ const PublicRoute = ({ children }) => {
     }
 
     if (user) {
-        showToast("You are already logged in", "info");
         return <Navigate to={ROUTES.BROWSE} replace />;
     }
 

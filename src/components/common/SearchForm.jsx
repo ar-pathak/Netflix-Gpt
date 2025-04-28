@@ -69,6 +69,8 @@ const SearchForm = ({ onSearch }) => {
                                 <input
                                     ref={inputRef}
                                     type="text"
+                                    id="search-input"
+                                    name="search"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search for movies, shows, directors..."

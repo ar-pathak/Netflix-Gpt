@@ -13,20 +13,8 @@ const Header = () => {
     const navigate = useNavigate();
     const { showToast } = useToast();
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [searchOpen, setSearchOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
     const searchRef = useRef(null);
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (searchRef.current && !searchRef.current.contains(event.target)) {
-                setSearchOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     const handleSignOut = async () => {
         try {
@@ -39,14 +27,6 @@ const Header = () => {
         }
     };
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            navigate(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchQuery.trim())}`);
-            setSearchOpen(false);
-            setSearchQuery('');
-        }
-    };
 
     return (
         <div className="fixed w-full px-4 sm:px-8 py-3 bg-gradient-to-b from-black to-transparent z-50 flex justify-between items-center">
@@ -60,52 +40,6 @@ const Header = () => {
             
             {user && (
                 <div className="flex items-center gap-4">
-                    {/* Search Button */}
-                    <button
-                        onClick={() => setSearchOpen(!searchOpen)}
-                        className="text-white hover:text-red-600 transition-colors p-2"
-                        aria-label="Search"
-                    >
-                        <FaSearch className="w-5 h-5" />
-                    </button>
-
-                    {/* Search Bar */}
-                    <AnimatePresence>
-                        {searchOpen && (
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                className="absolute top-0 left-0 w-full h-full bg-black/95 flex items-center px-4 sm:px-8"
-                                ref={searchRef}
-                            >
-                                <form onSubmit={handleSearch} className="w-full max-w-3xl mx-auto flex items-center">
-                                    <input
-                                        type="text"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        placeholder="Search for movies, TV shows..."
-                                        className="w-full bg-gray-800 text-white px-4 py-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-red-600"
-                                        autoFocus
-                                    />
-                                    <button
-                                        type="submit"
-                                        className="bg-red-600 text-white px-4 py-2 rounded-r-lg hover:bg-red-700 transition-colors"
-                                    >
-                                        Search
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setSearchOpen(false)}
-                                        className="ml-4 text-gray-400 hover:text-white transition-colors"
-                                    >
-                                        <FaTimes className="w-5 h-5" />
-                                    </button>
-                                </form>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
                     {/* Profile Dropdown */}
                     <div className="relative">
                         <button 

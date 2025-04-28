@@ -5,12 +5,10 @@ import { getFallbackMovies } from '../utils/fallbackData';
 const useUpcomingContent = () => {
     const [content, setContent] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
     useEffect(() => {
         const loadUpcomingContent = async () => {
             setLoading(true);
-            setError(null);
 
             try {
                 // Fetch upcoming movies (using current year + 1)
@@ -52,12 +50,12 @@ const useUpcomingContent = () => {
                 if (allResults.length > 0) {
                     setContent(allResults.slice(0, 20));
                 } else {
+                    // If no results found, use fallback data without showing error
                     setContent(getFallbackMovies('upcoming'));
-                    console.warn('Using fallback upcoming content');
                 }
             } catch (error) {
                 console.error('Error loading upcoming content:', error);
-                setError('Failed to load upcoming content');
+                // Use fallback data without showing error
                 setContent(getFallbackMovies('upcoming'));
             } finally {
                 setLoading(false);
@@ -67,7 +65,7 @@ const useUpcomingContent = () => {
         loadUpcomingContent();
     }, []);
 
-    return { content, loading, error };
+    return { content, loading };
 };
 
 export default useUpcomingContent; 

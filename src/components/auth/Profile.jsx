@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { auth } from '../../utils/firebase';
 import { updateProfile } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { toast } from 'react-hot-toast';
-import { FaUser, FaEnvelope, FaPencilAlt, FaGlobe, FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaCamera, FaArrowLeft, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPencilAlt, FaGlobe, FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaCamera, FaArrowLeft, FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -25,8 +25,37 @@ const Profile = () => {
             linkedin: auth.currentUser?.social?.linkedin || ''
         }
     });
+    const [errors, setErrors] = useState({});
+    const [originalData, setOriginalData] = useState(null);
 
     const storage = getStorage();
+
+    useEffect(() => {
+        if (isEditing) {
+            setOriginalData(formData);
+        }
+    }, [isEditing]);
+
+    const validateForm = () => {
+        const newErrors = {};
+        
+        // Validate display name
+        if (!formData.displayName.trim()) {
+            newErrors.displayName = 'Display name is required';
+        } else if (formData.displayName.length < 2) {
+            newErrors.displayName = 'Display name must be at least 2 characters';
+        }
+
+        // Validate social URLs
+        Object.entries(formData.social).forEach(([platform, url]) => {
+            if (url && !validateSocialUrl(url, platform)) {
+                newErrors[`social.${platform}`] = `Invalid ${platform} URL format`;
+            }
+        });
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handlePhotoChange = async (e) => {
         const file = e.target.files[0];
@@ -84,10 +113,8 @@ const Profile = () => {
     };
 
     const handleUpdateProfile = async () => {
-        // Validate social URLs
-        const invalidSocials = Object.entries(formData.social).filter(([platform, url]) => !validateSocialUrl(url, platform));
-        if (invalidSocials.length > 0) {
-            toast.error(`Invalid ${invalidSocials[0][0]} URL format`);
+        if (!validateForm()) {
+            toast.error('Please fix the errors in the form');
             return;
         }
 
@@ -101,12 +128,21 @@ const Profile = () => {
             });
             toast.success('Profile updated successfully!');
             setIsEditing(false);
-            setTimeout(() => setLoading(false), 600);
+            setErrors({});
         } catch (error) {
             console.error('Error updating profile:', error);
             toast.error('Failed to update profile');
+        } finally {
             setLoading(false);
         }
+    };
+
+    const handleCancel = () => {
+        if (originalData) {
+            setFormData(originalData);
+        }
+        setIsEditing(false);
+        setErrors({});
     };
 
     return (
@@ -117,7 +153,7 @@ const Profile = () => {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="flex items-center mb-4 sm:mb-8"
+                    className="flex items-center justify-between mb-4 sm:mb-8"
                 >
                     <button
                         onClick={() => navigate(-1)}
@@ -126,6 +162,37 @@ const Profile = () => {
                         <FaArrowLeft className="mr-1.5 sm:mr-2" />
                         <span>Back</span>
                     </button>
+                    {!isEditing ? (
+                        <button
+                            onClick={() => setIsEditing(true)}
+                            className="flex items-center px-3 py-1.5 sm:px-4 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-sm sm:text-base"
+                        >
+                            <FaPencilAlt className="mr-1.5 sm:mr-2" />
+                            <span>Edit Profile</span>
+                        </button>
+                    ) : (
+                        <div className="flex items-center space-x-2">
+                            <button
+                                onClick={handleCancel}
+                                className="flex items-center px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-all text-sm sm:text-base"
+                            >
+                                <FaTimes className="mr-1.5 sm:mr-2" />
+                                <span>Cancel</span>
+                            </button>
+                            <button
+                                onClick={handleUpdateProfile}
+                                disabled={loading}
+                                className="flex items-center px-3 py-1.5 sm:px-4 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? (
+                                    <FaSpinner className="animate-spin mr-1.5 sm:mr-2" />
+                                ) : (
+                                    <FaCheck className="mr-1.5 sm:mr-2" />
+                                )}
+                                <span>Save Changes</span>
+                            </button>
+                        </div>
+                    )}
                 </motion.div>
                 
                 <motion.div 
@@ -142,11 +209,11 @@ const Profile = () => {
                                 <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-gray-800 shadow-xl">
                                     {uploadingPhoto ? (
                                         <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+                                            <FaSpinner className="animate-spin text-2xl text-red-500" />
                                         </div>
                                     ) : (
                                         <img 
-                                            src={formData.photoURL || 'https://via.placeholder.com/150'} 
+                                            src={formData.photoURL || 'https://ui-avatars.com/api/?name=User&background=random'} 
                                             alt="Profile" 
                                             className="w-full h-full object-cover"
                                         />
@@ -173,12 +240,19 @@ const Profile = () => {
                             <div className="pb-2 sm:pb-4">
                                 <h1 className="text-xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">
                                     {isEditing ? (
-                                        <input
-                                            type="text"
-                                            value={formData.displayName}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-                                            className="w-full bg-gray-800 text-white rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 focus:outline-none focus:ring-2 focus:ring-red-500 border border-gray-700 text-sm sm:text-base"
-                                        />
+                                        <div>
+                                            <input
+                                                type="text"
+                                                value={formData.displayName}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
+                                                className={`w-full bg-gray-800 text-white rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 focus:outline-none focus:ring-2 focus:ring-red-500 border ${
+                                                    errors.displayName ? 'border-red-500' : 'border-gray-700'
+                                                } text-sm sm:text-base`}
+                                            />
+                                            {errors.displayName && (
+                                                <p className="text-red-500 text-xs mt-1">{errors.displayName}</p>
+                                            )}
+                                        </div>
                                     ) : (
                                         formData.displayName || 'User'
                                     )}
@@ -212,132 +286,40 @@ const Profile = () => {
                             <div className="p-4 sm:p-6 rounded-xl bg-gray-800 border border-gray-700">
                                 <h3 className="text-white font-medium text-base sm:text-lg mb-3 sm:mb-4">Social Links</h3>
                                 <div className="space-y-3 sm:space-y-4">
-                                    <div className="flex items-center space-x-3 sm:space-x-4">
-                                        <FaFacebook className="text-xl sm:text-2xl text-blue-500" />
-                                        {isEditing ? (
-                                            <input
-                                                type="text"
-                                                value={formData.social.facebook}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, social: { ...prev.social, facebook: e.target.value } }))}
-                                                placeholder="Facebook profile URL"
-                                                className="flex-1 bg-gray-700 text-white rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 focus:outline-none focus:ring-2 focus:ring-red-500 border border-gray-600 text-sm sm:text-base"
-                                            />
-                                        ) : (
-                                            <span className="text-sm sm:text-base text-gray-400">
-                                                {formData.social.facebook || 'Not connected'}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center space-x-3 sm:space-x-4">
-                                        <FaTwitter className="text-xl sm:text-2xl text-blue-400" />
-                                        {isEditing ? (
-                                            <input
-                                                type="text"
-                                                value={formData.social.twitter}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, social: { ...prev.social, twitter: e.target.value } }))}
-                                                placeholder="Twitter profile URL"
-                                                className="flex-1 bg-gray-700 text-white rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 focus:outline-none focus:ring-2 focus:ring-red-500 border border-gray-600 text-sm sm:text-base"
-                                            />
-                                        ) : (
-                                            <span className="text-sm sm:text-base text-gray-400">
-                                                {formData.social.twitter || 'Not connected'}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center space-x-3 sm:space-x-4">
-                                        <FaInstagram className="text-xl sm:text-2xl text-pink-500" />
-                                        {isEditing ? (
-                                            <input
-                                                type="text"
-                                                value={formData.social.instagram}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, social: { ...prev.social, instagram: e.target.value } }))}
-                                                placeholder="Instagram profile URL"
-                                                className="flex-1 bg-gray-700 text-white rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 focus:outline-none focus:ring-2 focus:ring-red-500 border border-gray-600 text-sm sm:text-base"
-                                            />
-                                        ) : (
-                                            <span className="text-sm sm:text-base text-gray-400">
-                                                {formData.social.instagram || 'Not connected'}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center space-x-3 sm:space-x-4">
-                                        <FaLinkedin className="text-xl sm:text-2xl text-blue-600" />
-                                        {isEditing ? (
-                                            <input
-                                                type="text"
-                                                value={formData.social.linkedin}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, social: { ...prev.social, linkedin: e.target.value } }))}
-                                                placeholder="LinkedIn profile URL"
-                                                className="flex-1 bg-gray-700 text-white rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 focus:outline-none focus:ring-2 focus:ring-red-500 border border-gray-600 text-sm sm:text-base"
-                                            />
-                                        ) : (
-                                            <span className="text-sm sm:text-base text-gray-400">
-                                                {formData.social.linkedin || 'Not connected'}
-                                            </span>
-                                        )}
-                                    </div>
+                                    {Object.entries(formData.social).map(([platform, url]) => (
+                                        <div key={platform} className="flex items-center space-x-3 sm:space-x-4">
+                                            {platform === 'facebook' && <FaFacebook className="text-xl sm:text-2xl text-blue-500" />}
+                                            {platform === 'twitter' && <FaTwitter className="text-xl sm:text-2xl text-blue-400" />}
+                                            {platform === 'instagram' && <FaInstagram className="text-xl sm:text-2xl text-pink-500" />}
+                                            {platform === 'linkedin' && <FaLinkedin className="text-xl sm:text-2xl text-blue-600" />}
+                                            {isEditing ? (
+                                                <div className="flex-1">
+                                                    <input
+                                                        type="text"
+                                                        value={url}
+                                                        onChange={(e) => setFormData(prev => ({
+                                                            ...prev,
+                                                            social: { ...prev.social, [platform]: e.target.value }
+                                                        }))}
+                                                        placeholder={`${platform.charAt(0).toUpperCase() + platform.slice(1)} profile URL`}
+                                                        className={`w-full bg-gray-700 text-white rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 focus:outline-none focus:ring-2 focus:ring-red-500 border ${
+                                                            errors[`social.${platform}`] ? 'border-red-500' : 'border-gray-600'
+                                                        } text-sm sm:text-base`}
+                                                    />
+                                                    {errors[`social.${platform}`] && (
+                                                        <p className="text-red-500 text-xs mt-1">{errors[`social.${platform}`]}</p>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="text-sm sm:text-base text-gray-400">
+                                                    {url || 'Not connected'}
+                                                </span>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="border-t border-gray-800 p-4 sm:p-6">
-                        <AnimatePresence mode="wait">
-                            {isEditing ? (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    className="flex space-x-3 sm:space-x-4"
-                                >
-                                    <motion.button
-                                        onClick={() => setIsEditing(false)}
-                                        className="flex-1 flex items-center justify-center py-2 sm:py-3 px-4 sm:px-6 rounded-lg bg-gray-700 hover:bg-gray-600 text-white transition-all text-sm sm:text-base"
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                    >
-                                        <FaTimes className="mr-1.5 sm:mr-2" />
-                                        Cancel
-                                    </motion.button>
-                                    <motion.button
-                                        onClick={handleUpdateProfile}
-                                        disabled={loading}
-                                        className="flex-1 flex items-center justify-center py-2 sm:py-3 px-4 sm:px-6 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-all disabled:opacity-70 text-sm sm:text-base"
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                    >
-                                        {loading ? (
-                                            <div className="flex items-center">
-                                                <svg className="animate-spin -ml-1 mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                Saving...
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center">
-                                                <FaCheck className="mr-1.5 sm:mr-2" />
-                                                Save Changes
-                                            </div>
-                                        )}
-                                    </motion.button>
-                                </motion.div>
-                            ) : (
-                                <motion.button
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    onClick={() => setIsEditing(true)}
-                                    className="w-full flex items-center justify-center py-2 sm:py-3 px-4 sm:px-6 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-all text-sm sm:text-base"
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                >
-                                    <FaPencilAlt className="mr-1.5 sm:mr-2" />
-                                    Edit Profile
-                                </motion.button>
-                            )}
-                        </AnimatePresence>
                     </div>
                 </motion.div>
             </div>

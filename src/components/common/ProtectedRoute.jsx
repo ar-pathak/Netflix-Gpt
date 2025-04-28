@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Navigate } from 'react-router';
 import { useToast } from '../../context/ToastContext';
 import UserContext from '../../context/UserContext';
@@ -7,6 +7,12 @@ import { ROUTES } from '../../utils/constants';
 const ProtectedRoute = ({ children }) => {
     const { user, loading } = useContext(UserContext);
     const { showToast } = useToast();
+
+    useEffect(() => {
+        if (!loading && !user) {
+            showToast('Please sign in to access this page', 'error');
+        }
+    }, [user, loading, showToast]);
 
     if (loading) {
         return (
@@ -18,7 +24,6 @@ const ProtectedRoute = ({ children }) => {
     }
 
     if (!user) {
-        showToast('Please sign in to access this page', 'error');
         return <Navigate to={ROUTES.LOGIN} replace />;
     }
 

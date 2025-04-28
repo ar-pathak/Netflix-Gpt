@@ -8,7 +8,7 @@ export const getFallbackMovies = (category) => {
             Year: nextYear,
             imdbID: "tt15239678",
             Type: "movie",
-            Poster: "https://m.media-amazon.com/images/M/MV5BN2FjNmEyNWMtYzM0ZS00NjIyLTg5YzYtYThlNTU3ZWE1ZTEzXkEyXkFqcGdeQXVyMTQyMTMwOTk0._V1_SX300.jpg",
+            Poster: "https://image.tmdb.org/t/p/w500/8xW2oRz6XZgVjU7xQY9nZ5w5Q5H.jpg",
             imdbRating: "8.5"
         },
         {
@@ -16,7 +16,7 @@ export const getFallbackMovies = (category) => {
             Year: nextYear,
             imdbID: "tt6263850",
             Type: "movie",
-            Poster: "https://m.media-amazon.com/images/M/MV5BMDExZGMyOTMtMDgyYi00NGIwLWIzMDYtZTk3MTQ3NGQkZDEwXkEyXkFqcGdeQXVyMTM1NjM2ODg1._V1_SX300.jpg",
+            Poster: "https://image.tmdb.org/t/p/w500/7Bd4EUouqWDNKvN3jqGvO9L7tY.jpg",
             imdbRating: "8.2"
         },
         {
@@ -24,7 +24,7 @@ export const getFallbackMovies = (category) => {
             Year: nextYear,
             imdbID: "tt14209916",
             Type: "movie",
-            Poster: "https://m.media-amazon.com/images/M/MV5BM2IxN2U0MTgtYzE0Ny00YjA3LTg3NDgtYzE0YzY5YjM5ZTM5XkEyXkFqcGdeQXVyMTUzMTg2ODkz._V1_SX300.jpg",
+            Poster: "https://image.tmdb.org/t/p/w500/2Jp4SS5H4K7yfm5Kp8M3bT5Bhx.jpg",
             imdbRating: "8.0"
         },
         {
@@ -32,7 +32,7 @@ export const getFallbackMovies = (category) => {
             Year: currentYear,
             imdbID: "tt11198330",
             Type: "series",
-            Poster: "https://m.media-amazon.com/images/M/MV5BZjBiOGQyNWUtN2M2Ni00Y2U2LTg5ZTMtZTM3NjIyYjVmNDk1XkEyXkFqcGdeQXVyMTM1NjM2ODg1._V1_SX300.jpg",
+            Poster: "https://image.tmdb.org/t/p/w500/1X5hJfYtQjW5cf0Bvq6zxjq0n.jpg",
             imdbRating: "8.5"
         },
         {
@@ -40,7 +40,7 @@ export const getFallbackMovies = (category) => {
             Year: currentYear,
             imdbID: "tt3581920",
             Type: "series",
-            Poster: "https://m.media-amazon.com/images/M/MV5BZGUzYTI3M2EtZmM0Yy00NGUyLWI4ODEtN2Q0ZGJlNGZhYjc3XkEyXkFqcGdeQXVyMTM1NjM2ODg1._V1_SX300.jpg",
+            Poster: "https://image.tmdb.org/t/p/w500/uKvVjHNqB5VmOrdxqAt2F7J78ED.jpg",
             imdbRating: "8.8"
         }
     ];
