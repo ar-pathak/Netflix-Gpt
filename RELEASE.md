@@ -30,6 +30,8 @@ Netflix-GPT is a modern web application that combines the power of AI with movie
 ## Deployment
 The application is automatically deployed to Firebase Hosting when changes are pushed to the main branch.
 
+**Live URL**: [https://netflix-gpt-697e6.web.app/browse](https://netflix-gpt-697e6.web.app/browse)
+
 ## API Integration
 - TMDB API for movie data
 - Firebase for authentication and database
